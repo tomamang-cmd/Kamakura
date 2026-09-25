@@ -1,76 +1,144 @@
-<script>
-    // 發布到網路的 CSV 資料連結
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>旅遊行程表</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- FontAwesome 圖示庫 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- PapaParse CSV 解析庫 (確保資料換行與格式解析穩定) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+</head>
+<body class="bg-slate-100 min-h-screen pb-12 font-sans antialiased text-slate-800">
+
+  <!-- 頂部 Header -->
+  <header class="bg-slate-900 text-white sticky top-0 z-50 shadow-md">
+    <div class="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-2">
+        <i class="fa-solid fa-plane-departure text-amber-400 text-lg"></i>
+        <h1 class="font-bold text-base tracking-wide">旅遊行程總覽</h1>
+      </div>
+      <button onclick="fetchSheetData()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1.5 rounded-lg border border-slate-700 transition active:scale-95 flex items-center space-x-1">
+        <i class="fa-solid fa-rotate-right"></i>
+        <span>重新整理</span>
+      </button>
+    </div>
+
+    <!-- 天數切換 Tab 區塊 -->
+    <div class="bg-white border-b border-slate-200 shadow-sm">
+      <div id="day-tabs" class="max-w-md mx-auto px-4 py-2.5 flex space-x-2 overflow-x-auto no-scrollbar scroll-smooth">
+        <!-- 天數按鈕將由 JavaScript 自動生成 -->
+        <div class="text-xs text-slate-400 py-1">載入天數中...</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 行程清單主要區域 -->
+  <main class="max-w-md mx-auto px-4 pt-4">
+    <div id="itinerary-list" class="space-y-4">
+      <!-- 載入中狀態 -->
+      <div class="text-center py-16 text-slate-400 flex flex-col items-center justify-center space-y-3">
+        <i class="fa-solid fa-circle-notch fa-spin text-3xl text-amber-500"></i>
+        <p class="text-xs font-medium">正在載入最新行程資料...</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- JavaScript 邏輯控制區塊 -->
+  <script>
+    // Google 試算表發布至網路的 CSV 檔案網址
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTts06Ox6sW_FnwFO4GPKhHG22aAcTu5wtGZEHXVS2WH7CP8_PYVrQbangzokCVhw/pub?output=csv';
 
     let allData = [];
     let currentDay = '';
 
-    // CSV 解析函式 (處理逗號與換行)
-    function parseCSV(text) {
-      const lines = text.split('\n');
-      const result = [];
-      for (let i = 1; i < lines.length; i++) { // 從 1 開始跳過標題列
-        if (!lines[i].trim()) continue;
-        
-        // 解析 CSV 欄位（處理包含引號的內容）
-        const row = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || lines[i].split(',');
-        const cleanRow = row.map(val => val ? val.replace(/^"|"$/g, '').trim() : '');
-        
-        if (cleanRow.length > 0 && cleanRow[0]) {
-          result.push({
-            day: cleanRow[0] || '',
-            date: cleanRow[1] || '',
-            time: cleanRow[2] || '',
-            title: cleanRow[3] || '無標題',
-            category: cleanRow[4] || '行程',
-            location: cleanRow[5] || '',
-            maps_url: cleanRow[6] || '',
-            image: cleanRow[7] || '',
-            notes: cleanRow[8] || ''
-          });
-        }
-      }
-      return result;
-    }
-
+    // 抓取試算表資料
     async function fetchSheetData() {
+      const container = document.getElementById('itinerary-list');
+      container.innerHTML = `
+        <div class="text-center py-16 text-slate-400 flex flex-col items-center justify-center space-y-3">
+          <i class="fa-solid fa-circle-notch fa-spin text-3xl text-amber-500"></i>
+          <p class="text-xs font-medium">正在更新資料...</p>
+        </div>`;
+
       try {
         const response = await fetch(CSV_URL);
-        if (!response.ok) throw new Error('Network response was not ok');
-        const text = await response.text();
+        if (!response.ok) throw new Error('無法存取 Google 試算表，請確認網路連線');
+        const csvText = await response.text();
         
-        allData = parseCSV(text);
+        // 使用 PapaParse 解析 CSV，完美支援跨欄換行與包含逗號的內容
+        Papa.parse(csvText, {
+          header: true,
+          skipEmptyLines: true,
+          complete: function(results) {
+            allData = results.data.map(row => {
+              const keys = Object.keys(row);
+              return {
+                day: row[keys[0]] || row['Day'] || '',
+                date: row[keys[1]] || row['Date'] || '',
+                time: row[keys[2]] || row['Time'] || '',
+                title: row[keys[3]] || row['Title'] || '無標題',
+                category: row[keys[4]] || row['Category'] || '行程',
+                location: row[keys[5]] || row['Location'] || '',
+                maps_url: row[keys[6]] || row['Maps_URL'] || '',
+                image: row[keys[7]] || row['Image_URL'] || '',
+                notes: row[keys[8]] || row['Notes'] || ''
+              };
+            }).filter(item => item.day && item.day.trim() !== '');
 
-        if (allData.length === 0) {
-          throw new Error('No data found');
-        }
+            if (allData.length === 0) {
+              showError('找不到任何有效的行程資料，請檢查 Google 試算表內容。');
+              return;
+            }
 
-        renderTabs();
+            renderTabs();
+          },
+          error: function(err) {
+            showError('CSV 格式解析失敗：' + err.message);
+          }
+        });
+
       } catch (error) {
         console.error(error);
-        document.getElementById('itinerary-list').innerHTML = `
-          <div class="text-center py-10 text-red-500 font-semibold bg-red-50 rounded-xl p-4 border border-red-200">
-            <i class="fa-solid fa-triangle-exclamation text-2xl mb-2"></i><br>
-            資料讀取失敗！<br>
-            <span class="text-xs text-red-400 font-normal">請確認 Google 試算表已發布到網路並允許公開存取。</span>
-          </div>`;
+        showError(error.message);
       }
     }
 
+    // 顯示錯誤訊息
+    function showError(msg) {
+      document.getElementById('itinerary-list').innerHTML = `
+        <div class="text-center py-10 text-red-500 font-semibold bg-red-50 rounded-2xl p-5 border border-red-200/80 shadow-sm">
+          <i class="fa-solid fa-triangle-exclamation text-3xl mb-2 text-red-500"></i>
+          <p class="text-sm">資料讀取失敗</p>
+          <p class="text-xs text-red-400 font-normal mt-1">${msg}</p>
+          <button onclick="fetchSheetData()" class="mt-4 px-4 py-1.5 bg-red-500 text-white text-xs font-bold rounded-lg shadow hover:bg-red-600 transition">
+            重試
+          </button>
+        </div>`;
+    }
+
+    // 渲染上方天數按鈕 (Day 1, Day 2...)
     function renderTabs() {
       const days = [...new Set(allData.map(item => item.day))].filter(Boolean);
       const tabsContainer = document.getElementById('day-tabs');
       tabsContainer.innerHTML = '';
 
       if (days.length === 0) return;
-      if (!currentDay) currentDay = days[0];
+      if (!currentDay || !days.includes(currentDay)) {
+        currentDay = days[0];
+      }
 
       days.forEach(day => {
         const itemData = allData.find(d => d.day === day);
         const dateStr = itemData && itemData.date ? itemData.date.substring(5) : '';
 
         const btn = document.createElement('button');
-        btn.className = `px-3.5 py-1.5 text-xs font-bold rounded-full whitespace-nowrap transition-all flex flex-col items-center ${
+        btn.className = `px-3.5 py-1.5 text-xs font-bold rounded-full whitespace-nowrap transition-all flex flex-col items-center shrink-0 ${
           day === currentDay 
             ? 'bg-amber-500 text-slate-900 shadow-md shadow-amber-500/20 scale-105' 
             : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -87,6 +155,7 @@
       renderItinerary();
     }
 
+    // 渲染當天行程卡片清單
     function renderItinerary() {
       const container = document.getElementById('itinerary-list');
       const filteredData = allData.filter(item => item.day === currentDay);
@@ -98,7 +167,11 @@
 
       container.innerHTML = filteredData.map(item => `
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden transition-all hover:shadow-md">
-          ${item.image ? `<img src="${item.image}" class="w-full h-44 object-cover" onerror="this.style.display='none'">` : ''}
+          ${item.image ? `
+            <div class="relative w-full h-44 bg-slate-100">
+              <img src="${item.image}" class="w-full h-full object-cover" onerror="this.parentElement.style.display='none'">
+            </div>
+          ` : ''}
           
           <div class="p-4">
             <div class="flex items-center justify-between mb-2">
@@ -110,22 +183,23 @@
               </span>
             </div>
 
-            <h3 class="text-base font-bold text-slate-800 mb-1">${item.title}</h3>
+            <h3 class="text-base font-bold text-slate-800 mb-1 leading-snug">${item.title}</h3>
             
             ${item.location ? `
-              <p class="text-xs text-slate-500 mb-2 flex items-center">
-                <i class="fa-solid fa-location-dot text-rose-500 mr-1.5"></i>${item.location}
+              <p class="text-xs text-slate-500 mb-2.5 flex items-center">
+                <i class="fa-solid fa-location-dot text-rose-500 mr-1.5 shrink-0"></i>
+                <span class="truncate">${item.location}</span>
               </p>
             ` : ''}
 
             ${item.notes ? `
-              <div class="text-xs text-slate-600 bg-slate-50 p-2.5 rounded-xl border border-slate-100 mb-3 whitespace-pre-line leading-relaxed">
+              <div class="text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-100 mb-3 whitespace-pre-line leading-relaxed">
                 ${item.notes}
               </div>
             ` : ''}
 
             ${item.maps_url ? `
-              <a href="${item.maps_url}" target="_blank" 
+              <a href="${item.maps_url}" target="_blank" rel="noopener noreferrer" 
                  class="w-full flex items-center justify-center space-x-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold py-2.5 px-4 rounded-xl transition shadow-sm active:scale-[0.98]">
                 <i class="fa-solid fa-map-location-dot text-amber-400"></i>
                 <span>開啟 Google Maps 導航</span>
@@ -136,5 +210,8 @@
       `).join('');
     }
 
-    fetchSheetData();
+    // 頁面載入完成後啟動
+    window.addEventListener('DOMContentLoaded', fetchSheetData);
   </script>
+</body>
+</html>
