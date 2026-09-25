@@ -1,1 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2027 富士山鎌倉 16 日遊</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="max-w-md mx-auto min-h-screen bg-slate-50 pb-12 shadow-xl border-x border-slate-200">
 
+  <!-- 頂部大圖封面 -->
+  <div class="relative h-52 bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=1000');">
+    <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent flex flex-col justify-end p-5 text-white">
+      <div class="flex items-center space-x-2 mb-1">
+        <span class="text-xs font-bold bg-amber-500 text-slate-900 px-2.5 py-0.5 rounded-full">日本冬季自駕 🗻</span>
+        <span class="text-xs text-slate-200"><i class="fa-regular fa-clock mr-1"></i>16 天行程</span>
+      </div>
+      <h1 class="text-2xl font-black tracking-wide">2027 富士山鎌倉 16 日</h1>
+      <p class="text-xs text-slate-300 mt-1"><i class="fa-regular fa-calendar-alt mr-1"></i>2027-01-24 ~ 2027-02-08</p>
+    </div>
+  </div>
+
+  <!-- 天數滑動切換頁籤 (Day Tabs) -->
+  <div id="day-tabs" class="flex overflow-x-auto space-x-2 p-3 bg-white sticky top-0 z-20 border-b border-slate-200 hide-scrollbar shadow-sm">
+    <!-- JS 自動生成 Day 1 ~ Day 16 頁籤 -->
+  </div>
+
+  <!-- 當天行程列表 (Cards) -->
+  <div id="itinerary-list" class="p-4 space-y-4">
+    <div class="text-center py-12 text-slate-400">
+      <i class="fa-solid fa-circle-notch fa-spin text-2xl text-amber-500 mb-2"></i>
+      <p class="text-sm">行程載入中...</p>
+    </div>
+  </div>
+
+  <script>
+    // ⚠️ 請在此處貼上您的 Google Sheet ID
+    const SHEET_ID = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTts06Ox6sW_FnwFO4GPKhHG22aAcTu5wtGZEHXVS2WH7CP8_PYVrQbangzokCVhw/pubhtml'; 
+    const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
+
+    let allData = [];
+    let currentDay = '';
+
+    async function fetchSheetData() {
+      try {
+        const response = await fetch(SHEET_URL);
+        const text = await response.text();
+        const json = JSON.parse(text.substr(47).slice(0, -2));
+        const rows = json.table.rows;
+
+        allData = rows.map(row => ({
+          day: row.c[0] ? row.c[0].v : '',
+          date: row.c[1] ? row.c[1].v : '',
+          time: row.c[2] ? row.c[2].v : '',
+          title: row.c[3] ? row.c[3].v : '無標題',
+          category: row.c[4] ? row.c[4].v : '行程',
+          location: row.c[5] ? row.c[5].v : '',
+          maps_url: row.c[6] ? row.c[6].v : '',
+          image: row.c[7] ? row.c[7].v : '',
+          notes: row.c[8] ? row.c[8].v : ''
+        }));
+
+        renderTabs();
+      } catch (error) {
+        console.error(error);
+        document.getElementById('itinerary-list').innerHTML = `
+          <div class="text-center py-10 text-red-500 font-semibold bg-red-50 rounded-xl p-4 border border-red-200">
+            <i class="fa-solid fa-triangle-exclamation text-2xl mb-2"></i><br>
+            資料讀取失敗！<br>
+            <span class="text-xs text-red-400 font-normal">請確認 Google 試算表是否已點選「發布到網路」，並在程式碼中填入正確的 Sheet ID。</span>
+          </div>`;
+      }
+    }
+
+    function renderTabs() {
+      const days = [...new Set(allData.map(item => item.day))].filter(Boolean);
+      const tabsContainer = document.getElementById('day-tabs');
+      tabsContainer.innerHTML = '';
+
+      if (days.length === 0) return;
+      if (!currentDay) currentDay = days[0];
+
+      days.forEach(day => {
+        const itemData = allData.find(d => d.day === day);
+        const dateStr = itemData && itemData.date ? itemData.date.substring(5) : '';
+
+        const btn = document.createElement('button');
+        btn.className = `px-3.5 py-1.5 text-xs font-bold rounded-full whitespace-nowrap transition-all flex flex-col items-center ${
+          day === currentDay 
+            ? 'bg-amber-500 text-slate-900 shadow-md shadow-amber-500/20 scale-105' 
+            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+        }`;
+        btn.innerHTML = `<span>${day}</span>${dateStr ? `<span class="text-[10px] opacity-75 font-normal">${dateStr}</span>` : ''}`;
+        btn.onclick = () => {
+          currentDay = day;
+          renderTabs();
+          renderItinerary();
+        };
+        tabsContainer.appendChild(btn);
+      });
+
+      renderItinerary();
+    }
+
+    function renderItinerary() {
+      const container = document.getElementById('itinerary-list');
+      const filteredData = allData.filter(item => item.day === currentDay);
+
+      if (filteredData.length === 0) {
+        container.innerHTML = `<div class="text-center py-12 text-slate-400">當天尚無行程資訊</div>`;
+        return;
+      }
+
+      container.innerHTML = filteredData.map(item => `
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden transition-all hover:shadow-md">
+          ${item.image ? `<img src="${item.image}" class="w-full h-44 object-cover" onerror="this.style.display='none'">` : ''}
+          
+          <div class="p-4">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200/60">
+                <i class="fa-regular fa-clock mr-1"></i>${item.time || '整天'}
+              </span>
+              <span class="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
+                ${item.category}
+              </span>
+            </div>
+
+            <h3 class="text-base font-bold text-slate-800 mb-1">${item.title}</h3>
+            
+            ${item.location ? `
+              <p class="text-xs text-slate-500 mb-2 flex items-center">
+                <i class="fa-solid fa-location-dot text-rose-500 mr-1.5"></i>${item.location}
+              </p>
+            ` : ''}
+
+            ${item.notes ? `
+              <div class="text-xs text-slate-600 bg-slate-50 p-2.5 rounded-xl border border-slate-100 mb-3 whitespace-pre-line leading-relaxed">
+                ${item.notes}
+              </div>
+            ` : ''}
+
+            ${item.maps_url ? `
+              <a href="${item.maps_url}" target="_blank" 
+                 class="w-full flex items-center justify-center space-x-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold py-2.5 px-4 rounded-xl transition shadow-sm active:scale-[0.98]">
+                <i class="fa-solid fa-map-location-dot text-amber-400"></i>
+                <span>開啟 Google Maps 導航</span>
+              </a>
+            ` : ''}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    fetchSheetData();
+  </script>
+</body>
+</html>
