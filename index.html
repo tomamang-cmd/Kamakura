@@ -3,75 +3,287 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>旅遊行程表</title>
+  <title>富士山橫濱16日</title>
   
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   
-  <!-- FontAwesome 圖示庫 -->
+  <!-- Google Fonts: Inter & Noto Sans TC -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome 6 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- PapaParse CSV 解析庫 (確保資料換行與格式解析穩定) -->
+  <!-- PapaParse CSV Reader -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-</head>
-<body class="bg-slate-100 min-h-screen pb-12 font-sans antialiased text-slate-800">
 
-  <!-- 頂部 Header -->
-  <header class="bg-slate-900 text-white sticky top-0 z-50 shadow-md">
-    <div class="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
-      <div class="flex items-center space-x-2">
-        <i class="fa-solid fa-plane-departure text-amber-400 text-lg"></i>
-        <h1 class="font-bold text-base tracking-wide">旅遊行程總覽</h1>
+  <style>
+    body { 
+      font-family: 'Inter', 'Noto Sans TC', sans-serif; 
+      background-color: #0f172a; 
+      color: #f8fafc;
+    }
+    
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* Glassmorphic UI effects */
+    .glass-card {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .glass-nav {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .fuji-gradient {
+      background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 50%, #6366f1 100%);
+    }
+
+    .badge-glow {
+      box-shadow: 0 0 12px rgba(14, 165, 233, 0.35);
+    }
+  </style>
+</head>
+<body class="min-h-screen pb-20 selection:bg-sky-500 selection:text-white">
+
+  <!-- Sticky Top Header Section -->
+  <header class="sticky top-0 z-40 glass-nav transition-all">
+    <div class="max-w-md mx-auto px-4 py-3.5 flex items-center justify-between">
+      <div class="flex items-center space-x-2.5">
+        <div class="w-9 h-9 rounded-xl fuji-gradient flex items-center justify-center text-white shadow-lg shadow-sky-500/20">
+          <i class="fa-solid fa-mountain text-base"></i>
+        </div>
+        <div>
+          <h1 class="font-extrabold text-base tracking-tight text-white flex items-center gap-1.5">
+            富士山橫濱16日
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-400 border border-sky-500/30">2027</span>
+          </h1>
+          <p class="text-[11px] text-slate-400">日本冬日雪景自由行</p>
+        </div>
       </div>
-      <button onclick="fetchSheetData()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1.5 rounded-lg border border-slate-700 transition active:scale-95 flex items-center space-x-1">
-        <i class="fa-solid fa-rotate-right"></i>
-        <span>重新整理</span>
-      </button>
+
+      <div class="flex items-center space-x-2">
+        <!-- 旅費計算按鈕 -->
+        <button onclick="openExpenseModal()" class="px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 font-bold text-xs rounded-xl shadow-lg shadow-amber-500/20 active:scale-95 transition flex items-center space-x-1.5">
+          <i class="fa-solid fa-calculator"></i>
+          <span>旅費試算</span>
+        </button>
+
+        <!-- 重新整理 -->
+        <button onclick="fetchSheetData()" title="重新整理" class="p-2 bg-slate-800/80 hover:bg-slate-700 text-slate-300 rounded-xl border border-slate-700/60 active:scale-90 transition">
+          <i class="fa-solid fa-arrows-rotate text-xs"></i>
+        </button>
+      </div>
     </div>
 
-    <!-- 天數切換 Tab 區塊 -->
-    <div class="bg-white border-b border-slate-200 shadow-sm">
+    <!-- 天數橫向滾動頁籤 -->
+    <div class="border-t border-slate-800/60 bg-slate-900/60">
       <div id="day-tabs" class="max-w-md mx-auto px-4 py-2.5 flex space-x-2 overflow-x-auto no-scrollbar scroll-smooth">
-        <!-- 天數按鈕將由 JavaScript 自動生成 -->
-        <div class="text-xs text-slate-400 py-1">載入天數中...</div>
+        <div class="text-xs text-slate-500 py-1">載入天數頁籤...</div>
       </div>
     </div>
   </header>
 
-  <!-- 行程清單主要區域 -->
-  <main class="max-w-md mx-auto px-4 pt-4">
+  <!-- Hero 氛圍橫幅 -->
+  <section class="max-w-md mx-auto px-4 mt-4">
+    <div class="relative h-44 rounded-3xl overflow-hidden shadow-2xl border border-slate-800/80 group">
+      <img src="https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=1000" class="w-full h-full object-cover transition duration-700 group-hover:scale-105" alt="Fujisan">
+      <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent"></div>
+      <div class="absolute bottom-4 left-4 right-4 flex items-end justify-between">
+        <div>
+          <span class="inline-flex items-center gap-1 text-[10px] font-bold tracking-wider text-sky-300 bg-sky-950/80 border border-sky-700/50 px-2.5 py-0.5 rounded-full mb-1">
+            <i class="fa-solid fa-snowflake text-[9px]"></i> 冬季雪景自駕
+          </span>
+          <h2 class="text-lg font-black text-white tracking-wide">鎌倉・富士山・長野・橫濱</h2>
+        </div>
+        <div class="text-right">
+          <div class="text-[10px] text-slate-400">總行程天數</div>
+          <div class="text-sm font-black text-amber-400">16 Days</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 行程明細主要區域 -->
+  <main class="max-w-md mx-auto px-4 mt-5">
     <div id="itinerary-list" class="space-y-4">
-      <!-- 載入中狀態 -->
-      <div class="text-center py-16 text-slate-400 flex flex-col items-center justify-center space-y-3">
-        <i class="fa-solid fa-circle-notch fa-spin text-3xl text-amber-500"></i>
-        <p class="text-xs font-medium">正在載入最新行程資料...</p>
+      <div class="text-center py-20 text-slate-500 flex flex-col items-center space-y-3">
+        <i class="fa-solid fa-circle-notch fa-spin text-3xl text-sky-400"></i>
+        <p class="text-xs font-medium tracking-wider">正在連線讀取 Google 試算表...</p>
       </div>
     </div>
   </main>
 
-  <!-- JavaScript 邏輯控制區塊 -->
+  <!-- 旅費試算對話框 (Expense Calculator Modal) -->
+  <div id="expense-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md hidden transition-opacity">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col max-h-[85vh]">
+      
+      <!-- Modal Header -->
+      <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/90">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-8 h-8 rounded-lg bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400">
+            <i class="fa-solid fa-coins text-sm"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-sm text-white">旅費預算與試算試算器</h3>
+            <p class="text-[10px] text-slate-400">試算表內已記錄預訂費用彙整</p>
+          </div>
+        </div>
+        <button onclick="closeExpenseModal()" class="text-slate-400 hover:text-white p-1 rounded-lg transition">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Modal Content Body -->
+      <div class="p-5 overflow-y-auto space-y-4 no-scrollbar">
+        
+        <!-- 已預訂住宿費用統計卡片 -->
+        <div class="bg-slate-800/60 rounded-2xl p-4 border border-slate-700/50 space-y-3">
+          <div class="text-xs font-bold text-slate-300 flex items-center justify-between">
+            <span class="flex items-center gap-1.5"><i class="fa-solid fa-hotel text-sky-400"></i>已預訂住宿與費用明細</span>
+            <span class="text-[10px] text-slate-400">匯率參考 0.22</span>
+          </div>
+          
+          <div class="space-y-2 text-xs">
+            <div class="flex justify-between items-center bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
+              <div>
+                <div class="font-semibold text-slate-200">Ma Maison Mt. Fuji (富士山)</div>
+                <div class="text-[10px] text-slate-500">確認碼: 24714309</div>
+              </div>
+              <div class="text-right">
+                <div class="font-bold text-amber-400">NT$ 16,708</div>
+                <div class="text-[10px] text-slate-400">¥ 5,569</div>
+              </div>
+            </div>
+
+            <div class="flex justify-between items-center bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
+              <div>
+                <div class="font-semibold text-slate-200">beautiful Mt.Fuji A (本西湖)</div>
+                <div class="text-[10px] text-slate-500">確認碼: 5186780020</div>
+              </div>
+              <div class="text-right">
+                <div class="font-bold text-amber-400">NT$ 11,387</div>
+                <div class="text-[10px] text-slate-400">¥ 5,693</div>
+              </div>
+            </div>
+
+            <div class="flex justify-between items-center bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
+              <div>
+                <div class="font-semibold text-slate-200">長野權堂民宿 (Airbnb 3晚)</div>
+                <div class="text-[10px] text-slate-500">預訂碼: HMW32AZT3N</div>
+              </div>
+              <div class="text-right">
+                <div class="font-bold text-amber-400">NT$ 15,795</div>
+                <div class="text-[10px] text-slate-400">已包含全額</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-2 border-t border-slate-700/60 flex justify-between items-center">
+            <span class="text-xs text-slate-400">已確認住宿小計</span>
+            <span class="text-sm font-black text-amber-400">NT$ 43,890</span>
+          </div>
+        </div>
+
+        <!-- 動態預算試算計算機 -->
+        <div class="bg-gradient-to-br from-slate-800/80 to-slate-900/90 rounded-2xl p-4 border border-slate-700/60 space-y-3">
+          <div class="text-xs font-bold text-slate-200 flex items-center justify-between">
+            <span class="flex items-center gap-1.5"><i class="fa-solid fa-calculator text-amber-400"></i>人均同行旅費估算</span>
+            <span class="text-[10px] text-slate-400">現場可隨意調整</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 text-xs">
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">同行人數 (人)</label>
+              <input type="number" id="calc-people" value="2" min="1" oninput="calculateExpenses()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-amber-500">
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">預估機票 / 人 (NT$)</label>
+              <input type="number" id="calc-flight" value="13500" step="500" oninput="calculateExpenses()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-amber-500">
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">預估租車+油資/車 (NT$)</label>
+              <input type="number" id="calc-car" value="22000" step="1000" oninput="calculateExpenses()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-amber-500">
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">每日餐飲超市/人 (NT$)</label>
+              <input type="number" id="calc-daily-food" value="1200" step="100" oninput="calculateExpenses()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-amber-500">
+            </div>
+          </div>
+
+          <!-- 試算結果匯總區 -->
+          <div class="mt-3 bg-slate-950/80 p-3.5 rounded-xl border border-slate-800 space-y-1.5">
+            <div class="flex justify-between items-center text-xs">
+              <span class="text-slate-400">全團預估總費用</span>
+              <span id="total-group-cost" class="font-bold text-slate-200">NT$ 0</span>
+            </div>
+            <div class="flex justify-between items-center text-sm pt-1 border-t border-slate-800">
+              <span class="font-bold text-amber-400 flex items-center gap-1">
+                <i class="fa-solid fa-user-tag text-xs"></i>平均每人預估旅費
+              </span>
+              <span id="per-person-cost" class="text-base font-black text-amber-400">NT$ 0</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-5 py-3 border-t border-slate-800 bg-slate-950/60 text-center">
+        <button onclick="closeExpenseModal()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs py-2.5 rounded-xl transition">
+          關閉試算視窗
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
-    // Google 試算表發布至網路的 CSV 檔案網址
+    // Google 試算表 CSV 發布連結
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTts06Ox6sW_FnwFO4GPKhHG22aAcTu5wtGZEHXVS2WH7CP8_PYVrQbangzokCVhw/pub?output=csv';
 
     let allData = [];
     let currentDay = '';
 
+    // 類別標籤與 Icon 對應
+    function getCategoryStyle(category) {
+      switch(category) {
+        case '住宿':
+          return { bg: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20', icon: 'fa-hotel' };
+        case '美食':
+          return { bg: 'bg-rose-500/10 text-rose-400 border-rose-500/20', icon: 'fa-utensils' };
+        case '採買':
+        case '購物':
+          return { bg: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20', icon: 'fa-cart-shopping' };
+        case '交通':
+          return { bg: 'bg-sky-500/10 text-sky-400 border-sky-500/20', icon: 'fa-car' };
+        default:
+          return { bg: 'bg-amber-500/10 text-amber-400 border-amber-500/20', icon: 'fa-camera' };
+      }
+    }
+
     // 抓取試算表資料
     async function fetchSheetData() {
       const container = document.getElementById('itinerary-list');
       container.innerHTML = `
-        <div class="text-center py-16 text-slate-400 flex flex-col items-center justify-center space-y-3">
-          <i class="fa-solid fa-circle-notch fa-spin text-3xl text-amber-500"></i>
-          <p class="text-xs font-medium">正在更新資料...</p>
+        <div class="text-center py-20 text-slate-500 flex flex-col items-center justify-center space-y-3">
+          <i class="fa-solid fa-circle-notch fa-spin text-3xl text-sky-400"></i>
+          <p class="text-xs font-medium tracking-wider">正在連線讀取最新行程...</p>
         </div>`;
 
       try {
         const response = await fetch(CSV_URL);
-        if (!response.ok) throw new Error('無法存取 Google 試算表，請確認網路連線');
+        if (!response.ok) throw new Error('無法讀取 Google 試算表，請檢查網路連線');
         const csvText = await response.text();
         
-        // 使用 PapaParse 解析 CSV，完美支援跨欄換行與包含逗號的內容
         Papa.parse(csvText, {
           header: true,
           skipEmptyLines: true,
@@ -92,14 +304,14 @@
             }).filter(item => item.day && item.day.trim() !== '');
 
             if (allData.length === 0) {
-              showError('找不到任何有效的行程資料，請檢查 Google 試算表內容。');
+              showError('未搜尋到有效的行程內容');
               return;
             }
 
             renderTabs();
           },
           error: function(err) {
-            showError('CSV 格式解析失敗：' + err.message);
+            showError('CSV 格式解析錯誤：' + err.message);
           }
         });
 
@@ -109,20 +321,19 @@
       }
     }
 
-    // 顯示錯誤訊息
     function showError(msg) {
       document.getElementById('itinerary-list').innerHTML = `
-        <div class="text-center py-10 text-red-500 font-semibold bg-red-50 rounded-2xl p-5 border border-red-200/80 shadow-sm">
-          <i class="fa-solid fa-triangle-exclamation text-3xl mb-2 text-red-500"></i>
-          <p class="text-sm">資料讀取失敗</p>
-          <p class="text-xs text-red-400 font-normal mt-1">${msg}</p>
-          <button onclick="fetchSheetData()" class="mt-4 px-4 py-1.5 bg-red-500 text-white text-xs font-bold rounded-lg shadow hover:bg-red-600 transition">
-            重試
+        <div class="text-center py-10 text-rose-400 font-semibold glass-card rounded-3xl p-6 border border-rose-500/30">
+          <i class="fa-solid fa-triangle-exclamation text-3xl mb-3 text-rose-400"></i>
+          <p class="text-sm text-slate-200">資料讀取中斷</p>
+          <p class="text-xs text-rose-300 font-normal mt-1">${msg}</p>
+          <button onclick="fetchSheetData()" class="mt-4 px-4 py-2 bg-rose-500 hover:bg-rose-600 text-slate-950 font-bold text-xs rounded-xl shadow transition">
+            重試連線
           </button>
         </div>`;
     }
 
-    // 渲染上方天數按鈕 (Day 1, Day 2...)
+    // 渲染上方 Tab 頁籤
     function renderTabs() {
       const days = [...new Set(allData.map(item => item.day))].filter(Boolean);
       const tabsContainer = document.getElementById('day-tabs');
@@ -138,12 +349,12 @@
         const dateStr = itemData && itemData.date ? itemData.date.substring(5) : '';
 
         const btn = document.createElement('button');
-        btn.className = `px-3.5 py-1.5 text-xs font-bold rounded-full whitespace-nowrap transition-all flex flex-col items-center shrink-0 ${
+        btn.className = `px-4 py-2 text-xs font-bold rounded-2xl whitespace-nowrap transition-all flex flex-col items-center shrink-0 ${
           day === currentDay 
-            ? 'bg-amber-500 text-slate-900 shadow-md shadow-amber-500/20 scale-105' 
-            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            ? 'fuji-gradient text-white shadow-lg shadow-sky-500/25 scale-105' 
+            : 'bg-slate-800/80 text-slate-400 hover:bg-slate-700/80 hover:text-slate-200 border border-slate-700/40'
         }`;
-        btn.innerHTML = `<span>${day}</span>${dateStr ? `<span class="text-[10px] opacity-75 font-normal">${dateStr}</span>` : ''}`;
+        btn.innerHTML = `<span>${day}</span>${dateStr ? `<span class="text-[10px] opacity-80 font-medium">${dateStr}</span>` : ''}`;
         btn.onclick = () => {
           currentDay = day;
           renderTabs();
@@ -155,62 +366,100 @@
       renderItinerary();
     }
 
-    // 渲染當天行程卡片清單
+    // 渲染卡片清單
     function renderItinerary() {
       const container = document.getElementById('itinerary-list');
       const filteredData = allData.filter(item => item.day === currentDay);
 
       if (filteredData.length === 0) {
-        container.innerHTML = `<div class="text-center py-12 text-slate-400">當天尚無行程資訊</div>`;
+        container.innerHTML = `<div class="text-center py-16 text-slate-500 text-xs">當天尚無行程細節安排</div>`;
         return;
       }
 
-      container.innerHTML = filteredData.map(item => `
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden transition-all hover:shadow-md">
-          ${item.image ? `
-            <div class="relative w-full h-44 bg-slate-100">
-              <img src="${item.image}" class="w-full h-full object-cover" onerror="this.parentElement.style.display='none'">
-            </div>
-          ` : ''}
-          
-          <div class="p-4">
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-xs font-bold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200/60">
-                <i class="fa-regular fa-clock mr-1"></i>${item.time || '整天'}
-              </span>
-              <span class="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
-                ${item.category}
-              </span>
-            </div>
-
-            <h3 class="text-base font-bold text-slate-800 mb-1 leading-snug">${item.title}</h3>
-            
-            ${item.location ? `
-              <p class="text-xs text-slate-500 mb-2.5 flex items-center">
-                <i class="fa-solid fa-location-dot text-rose-500 mr-1.5 shrink-0"></i>
-                <span class="truncate">${item.location}</span>
-              </p>
-            ` : ''}
-
-            ${item.notes ? `
-              <div class="text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-100 mb-3 whitespace-pre-line leading-relaxed">
-                ${item.notes}
+      container.innerHTML = filteredData.map(item => {
+        const catStyle = getCategoryStyle(item.category);
+        return `
+          <div class="glass-card rounded-3xl overflow-hidden transition-all duration-300 hover:border-slate-700/80">
+            ${item.image ? `
+              <div class="relative w-full h-44 bg-slate-900 overflow-hidden">
+                <img src="${item.image}" class="w-full h-full object-cover transition duration-500 hover:scale-105" onerror="this.parentElement.style.display='none'">
               </div>
             ` : ''}
+            
+            <div class="p-4">
+              <!-- 時間與分類 Header -->
+              <div class="flex items-center justify-between mb-2.5">
+                <span class="text-[11px] font-bold text-sky-400 bg-sky-950/80 border border-sky-800/50 px-2.5 py-1 rounded-xl flex items-center gap-1.5">
+                  <i class="fa-regular fa-clock text-[10px]"></i>${item.time || '整天'}
+                </span>
+                <span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-xl border ${catStyle.bg} flex items-center gap-1">
+                  <i class="fa-solid ${catStyle.icon} text-[10px]"></i>${item.category}
+                </span>
+              </div>
 
-            ${item.maps_url ? `
-              <a href="${item.maps_url}" target="_blank" rel="noopener noreferrer" 
-                 class="w-full flex items-center justify-center space-x-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold py-2.5 px-4 rounded-xl transition shadow-sm active:scale-[0.98]">
-                <i class="fa-solid fa-map-location-dot text-amber-400"></i>
-                <span>開啟 Google Maps 導航</span>
-              </a>
-            ` : ''}
+              <!-- 行程標題 -->
+              <h3 class="text-base font-bold text-white mb-1.5 leading-snug">${item.title}</h3>
+              
+              <!-- 地點 -->
+              ${item.location ? `
+                <p class="text-xs text-slate-400 mb-2.5 flex items-center">
+                  <i class="fa-solid fa-location-dot text-rose-400 mr-1.5 shrink-0"></i>
+                  <span class="truncate">${item.location}</span>
+                </p>
+              ` : ''}
+
+              <!-- 備註說明 -->
+              ${item.notes ? `
+                <div class="text-xs text-slate-300 bg-slate-900/80 p-3 rounded-2xl border border-slate-800/80 mb-3.5 whitespace-pre-line leading-relaxed">
+                  ${item.notes}
+                </div>
+              ` : ''}
+
+              <!-- Google Maps 導航按鈕 -->
+              ${item.maps_url ? `
+                <a href="${item.maps_url}" target="_blank" rel="noopener noreferrer" 
+                   class="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-slate-950 font-bold text-xs py-2.5 px-4 rounded-xl transition shadow-lg shadow-sky-500/15 active:scale-[0.98]">
+                  <i class="fa-solid fa-map-location-dot"></i>
+                  <span>開啟 Google Maps 導航</span>
+                </a>
+              ` : ''}
+            </div>
           </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
 
-    // 頁面載入完成後啟動
+    // Modal 打開 / 關閉
+    function openExpenseModal() {
+      document.getElementById('expense-modal').classList.remove('hidden');
+      calculateExpenses();
+    }
+
+    function closeExpenseModal() {
+      document.getElementById('expense-modal').classList.add('hidden');
+    }
+
+    // 動態計算旅費
+    function calculateExpenses() {
+      const fixedStayCost = 43890; // 已預訂住宿總額 NTD
+      const people = parseInt(document.getElementById('calc-people').value) || 1;
+      const flightPerPerson = parseInt(document.getElementById('calc-flight').value) || 0;
+      const carTotal = parseInt(document.getElementById('calc-car').value) || 0;
+      const dailyFoodPerPerson = parseInt(document.getElementById('calc-daily-food').value) || 0;
+      const days = 16;
+
+      // 計算全團總花費
+      const totalFlight = flightPerPerson * people;
+      const totalFood = dailyFoodPerPerson * days * people;
+      const groupTotal = fixedStayCost + carTotal + totalFlight + totalFood;
+
+      // 人均花費
+      const perPerson = Math.round(groupTotal / people);
+
+      document.getElementById('total-group-cost').innerText = 'NT$ ' + groupTotal.toLocaleString();
+      document.getElementById('per-person-cost').innerText = 'NT$ ' + perPerson.toLocaleString();
+    }
+
     window.addEventListener('DOMContentLoaded', fetchSheetData);
   </script>
 </body>
