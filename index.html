@@ -74,7 +74,7 @@
 
       <div class="flex items-center space-x-2">
         <!-- 記帳按鈕 -->
-        <button onclick="openExpenseModal()" class="px-3 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-500/20 active:scale-95 transition flex items-center space-x-1.5">
+        <button onclick="openExpenseModal()" class="px-3.5 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-500/20 active:scale-95 transition flex items-center space-x-1.5">
           <i class="fa-solid fa-wallet"></i>
           <span>記帳</span>
         </button>
@@ -94,7 +94,7 @@
     </div>
   </header>
 
-  <!-- 區域動態 Hero Banner -->
+  <!-- 區域動態 Hero Banner (根據目前天數切換照片與文字) -->
   <section class="max-w-md mx-auto px-4 mt-4">
     <div class="relative h-48 rounded-3xl overflow-hidden shadow-lg border border-slate-200 group">
       <img id="hero-img" src="https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=1000" class="w-full h-full object-cover transition duration-700 group-hover:scale-105" alt="Region Banner">
@@ -432,25 +432,19 @@
 
               <h3 class="text-base font-bold text-slate-900 mb-1.5 leading-snug">${item.title}</h3>
               
+              <!-- 地點 (帶點擊地圖連結，取消獨立大導航按鈕) -->
               ${item.location ? `
                 <p class="text-xs text-slate-500 mb-2.5 flex items-center">
                   <i class="fa-solid fa-location-dot text-rose-500 mr-1.5 shrink-0"></i>
-                  <a href="${item.maps_url || '#'}" target="_blank" class="hover:underline hover:text-blue-600 truncate">${item.location}</a>
+                  <a href="${item.maps_url || '#'}" target="_blank" class="hover:underline hover:text-blue-600 font-semibold truncate">${item.location} (點擊開啟地圖)</a>
                 </p>
               ` : ''}
 
+              <!-- 備註說明 -->
               ${item.notes ? `
-                <div class="text-xs text-slate-600 bg-slate-50 p-3 rounded-2xl border border-slate-100 mb-3.5 whitespace-pre-line leading-relaxed">
+                <div class="text-xs text-slate-600 bg-slate-50 p-3 rounded-2xl border border-slate-100 mb-1 whitespace-pre-line leading-relaxed">
                   ${item.notes}
                 </div>
-              ` : ''}
-
-              ${item.maps_url ? `
-                <a href="${item.maps_url}" target="_blank" rel="noopener noreferrer" 
-                   class="w-full flex items-center justify-center space-x-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-2.5 px-4 rounded-xl transition shadow-sm active:scale-[0.98]">
-                  <i class="fa-solid fa-map-location-dot text-amber-400"></i>
-                  <span>開啟 Google Maps 導航</span>
-                </a>
               ` : ''}
             </div>
           </div>
