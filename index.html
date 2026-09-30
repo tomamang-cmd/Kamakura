@@ -37,7 +37,7 @@
     }
 
     .light-nav {
-      background: rgba(255, 255, 255, 0.88);
+      background: rgba(255, 255, 255, 0.92);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       border-bottom: 1px solid #e2e8f0;
@@ -47,16 +47,42 @@
       background: linear-gradient(135deg, #0284c7 0%, #2563eb 50%, #4f46e5 100%);
     }
 
-    .active-tab {
+    /* 分區粉色系頁籤 active 樣式 */
+    .active-tab-pink {
+      background: linear-gradient(135deg, #f43f5e 0%, #fb7185 100%);
+      color: #ffffff !important;
+      box-shadow: 0 4px 12px rgba(244, 63, 94, 0.3);
+      border-color: transparent !important;
+    }
+
+    .active-tab-default {
       background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
-      color: #ffffff;
+      color: #ffffff !important;
       box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+      border-color: transparent !important;
+    }
+
+    /* 時間軸藍線串聯 */
+    .timeline-container {
+      position: relative;
+    }
+
+    .timeline-container::before {
+      content: '';
+      position: absolute;
+      top: 24px;
+      bottom: 24px;
+      left: 23px;
+      width: 3px;
+      background: linear-gradient(180deg, #3b82f6 0%, #60a5fa 50%, #93c5fd 100%);
+      border-radius: 9999px;
+      z-index: 0;
     }
   </style>
 </head>
 <body class="min-h-screen pb-24 selection:bg-blue-500 selection:text-white">
 
-  <!-- Sticky Top Header Section (Light Theme) -->
+  <!-- Sticky Top Header Section -->
   <header class="sticky top-0 z-40 light-nav transition-all">
     <div class="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
       <div class="flex items-center space-x-2.5">
@@ -72,15 +98,21 @@
         </div>
       </div>
 
-      <div class="flex items-center space-x-2">
+      <div class="flex items-center space-x-1.5">
+        <!-- 編輯行程按鈕 -->
+        <button onclick="openEditModal()" class="px-2.5 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs rounded-xl shadow-md shadow-blue-500/20 active:scale-95 transition flex items-center space-x-1">
+          <i class="fa-solid fa-pen-to-square"></i>
+          <span>編輯行程</span>
+        </button>
+
         <!-- 記帳按鈕 -->
-        <button onclick="openExpenseModal()" class="px-3.5 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-500/20 active:scale-95 transition flex items-center space-x-1.5">
+        <button onclick="openExpenseModal()" class="px-2.5 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-500/20 active:scale-95 transition flex items-center space-x-1">
           <i class="fa-solid fa-wallet"></i>
           <span>記帳</span>
         </button>
 
         <!-- 重新整理 -->
-        <button onclick="fetchSheetData()" title="重新整理" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl border border-slate-200 active:scale-90 transition">
+        <button onclick="fetchSheetData()" title="重新整理" class="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl border border-slate-200 active:scale-90 transition">
           <i class="fa-solid fa-arrows-rotate text-xs"></i>
         </button>
       </div>
@@ -94,35 +126,111 @@
     </div>
   </header>
 
-  <!-- 區域動態 Hero Banner (根據目前天數切換照片與文字) -->
+  <!-- 精簡 Hero Banner (取消區域名稱，只保留 D1~D4) -->
   <section class="max-w-md mx-auto px-4 mt-4">
-    <div class="relative h-48 rounded-3xl overflow-hidden shadow-lg border border-slate-200 group">
-      <img id="hero-img" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQfe-vIAzy0eUvG6mfWL-CWwXHw7w6w-zEeMu2Idz7h1g&s=10" class="w-full h-full object-cover transition duration-700 group-hover:scale-105" alt="Region Banner">
+    <div class="relative h-36 rounded-3xl overflow-hidden shadow-md border border-slate-200 group">
+      <img id="hero-img" src="https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=1000" class="w-full h-full object-cover transition duration-700 group-hover:scale-105" alt="Region Banner">
       <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent"></div>
-      <div class="absolute bottom-4 left-4 right-4 flex items-end justify-between text-white">
+      <div class="absolute bottom-3.5 left-5 right-5 flex items-end justify-between text-white">
         <div>
-          <span id="hero-tag" class="inline-flex items-center gap-1 text-[10px] font-bold tracking-wider text-blue-200 bg-blue-900/60 backdrop-blur-md border border-blue-400/30 px-2.5 py-0.5 rounded-full mb-1">
-            <i class="fa-solid fa-train-subway text-[9px]"></i> 藤澤・江之島・鎌倉區域
+          <span class="text-[10px] font-bold tracking-wider text-blue-200 bg-blue-950/70 backdrop-blur-md border border-blue-400/30 px-2.5 py-0.5 rounded-full mb-1 inline-block">
+            <i class="fa-solid fa-calendar-days text-[9px] mr-1"></i>當前分區
           </span>
-          <h2 id="hero-title" class="text-lg font-black tracking-wide drop-shadow-md">湘南海岸 & 江之電風情</h2>
-        </div>
-        <div class="text-right">
-          <div class="text-[10px] text-slate-300">目前分區</div>
-          <div id="hero-days" class="text-xs font-bold text-amber-300">D1 ~ D4</div>
+          <h2 id="hero-days" class="text-2xl font-black tracking-wide text-white drop-shadow-md">D1 ~ D4</h2>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- 行程卡片明細區域 -->
+  <!-- 行程卡片明細區域 (具備藍色時間軸串聯) -->
   <main class="max-w-md mx-auto px-4 mt-5">
-    <div id="itinerary-list" class="space-y-4">
-      <div class="text-center py-20 text-slate-400 flex flex-col items-center space-y-3">
+    <div id="itinerary-list" class="timeline-container space-y-5">
+      <div class="text-center py-20 text-slate-400 flex flex-col items-center justify-center space-y-3">
         <i class="fa-solid fa-circle-notch fa-spin text-3xl text-blue-500"></i>
         <p class="text-xs font-medium tracking-wider">正在連線讀取最新行程...</p>
       </div>
     </div>
   </main>
+
+  <!-- 編輯/新增行程 Modal -->
+  <div id="edit-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden transition-opacity">
+    <div class="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl border border-slate-200 flex flex-col max-h-[90vh]">
+      
+      <!-- Modal Header -->
+      <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-8 h-8 rounded-xl bg-blue-100 border border-blue-200 flex items-center justify-center text-blue-600">
+            <i class="fa-solid fa-calendar-plus text-sm"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-sm text-slate-900">新增/編輯行程內容</h3>
+            <p class="text-[10px] text-slate-500">增加時間、名稱、地點與詳細說明</p>
+          </div>
+        </div>
+        <button onclick="closeEditModal()" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg transition">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-5 overflow-y-auto space-y-4 text-xs no-scrollbar">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">選擇天數</label>
+            <select id="edit-day" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold text-slate-800 focus:outline-none focus:border-blue-500">
+              <!-- JS 動態生成 Day1~Day16 -->
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">行程時間</label>
+            <input type="text" id="edit-time" placeholder="例如：14:30 或 整天" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-semibold focus:outline-none focus:border-blue-500">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">行程名稱</label>
+            <input type="text" id="edit-title" placeholder="例如：新倉山淺間公園" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-semibold focus:outline-none focus:border-blue-500">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">行程分類</label>
+            <select id="edit-category" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-semibold focus:outline-none focus:border-blue-500">
+              <option value="景點">📷 景點</option>
+              <option value="美食">🍜 美食</option>
+              <option value="採買">🛒 採買</option>
+              <option value="交通">🚗 交通</option>
+              <option value="住宿">🏨 住宿</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">地點名稱 (Location)</label>
+          <input type="text" id="edit-location" placeholder="例如：新倉山淺間公園" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-semibold focus:outline-none focus:border-blue-500">
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Google Maps 網址 (Maps_URL)</label>
+          <input type="text" id="edit-maps-url" placeholder="https://maps.app.goo.gl/..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-semibold focus:outline-none focus:border-blue-500">
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">行程介紹 / 備註</label>
+          <textarea id="edit-notes" rows="3" placeholder="填寫行程特色、注意事項或預訂確認碼..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-medium focus:outline-none focus:border-blue-500"></textarea>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-5 py-3 border-t border-slate-100 bg-slate-50/80 flex space-x-2">
+        <button onclick="closeEditModal()" class="w-1/3 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs py-2.5 rounded-xl transition">
+          取消
+        </button>
+        <button onclick="saveNewItinerary()" class="w-2/3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-2.5 rounded-xl shadow-md transition active:scale-95">
+          儲存並加入行程
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- 記帳對話框 (Expense Logger Modal) -->
   <div id="expense-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden transition-opacity">
@@ -225,31 +333,11 @@
     let allData = [];
     let currentDay = '';
 
-    const regionInfo = {
-      fujisawa: {
-        days: 'D1 ~ D4',
-        tag: '<i class="fa-solid fa-train-subway text-[9px]"></i> 藤澤・江之島・鎌倉區域',
-        title: '湘南海岸 & 江之電古都風情',
-        img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQfe-vIAzy0eUvG6mfWL-CWwXHw7w6w-zEeMu2Idz7h1g&s=10'
-      },
-      fuji: {
-        days: 'D5 ~ D9',
-        tag: '<i class="fa-solid fa-snowflake text-[9px]"></i> 富士山・富士五湖區域',
-        title: '富士五湖自駕 & 冬日絕景',
-        img: 'https://img.letsgojp.com/2025/10/vvv4836675_m-1200x628-1760579644.webp'
-      },
-      nagano: {
-        days: 'D10 ~ D12',
-        tag: '<i class="fa-solid fa-icicles text-[9px]"></i> 長野・黑姬・戶隱區域',
-        title: '黑姬高原雪景 & 戶隱巨木參道',
-        img: 'https://www.yukiguni-journey.jp/wp-content/uploads/2021/12/22012301_kurohime.jpg'
-      },
-      yokohama: {
-        days: 'D13 ~ D16',
-        tag: '<i class="fa-solid fa-city text-[9px]"></i> 橫濱・品川區域',
-        title: '橫濱港灣紅磚 & 東京品川散策',
-        img: 'https://static.gltjp.com/glt/data/article/21000/20427/20230919_135547_2364c1f3_w1920.webp'
-      }
+    const regionImages = {
+      fujisawa: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=1000',
+      fuji: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=1000',
+      nagano: 'https://images.unsplash.com/photo-1545569341-9eb8b30979d9?q=80&w=1000',
+      yokohama: 'https://images.unsplash.com/photo-1565043666747-69f6646db940?q=80&w=1000'
     };
 
     let expenseRecords = [
@@ -346,22 +434,25 @@
 
     function updateHeroSection(dayStr) {
       const dayNum = parseInt(dayStr.replace('Day', '').trim()) || 1;
-      let target = regionInfo.fujisawa;
+      let targetImg = regionImages.fujisawa;
+      let labelText = 'D1 ~ D4';
 
       if (dayNum >= 1 && dayNum <= 4) {
-        target = regionInfo.fujisawa;
+        targetImg = regionImages.fujisawa;
+        labelText = 'D1 ~ D4';
       } else if (dayNum >= 5 && dayNum <= 9) {
-        target = regionInfo.fuji;
+        targetImg = regionImages.fuji;
+        labelText = 'D5 ~ D9';
       } else if (dayNum >= 10 && dayNum <= 12) {
-        target = regionInfo.nagano;
+        targetImg = regionImages.nagano;
+        labelText = 'D10 ~ D12';
       } else if (dayNum >= 13) {
-        target = regionInfo.yokohama;
+        targetImg = regionImages.yokohama;
+        labelText = 'D13 ~ D16';
       }
 
-      document.getElementById('hero-img').src = target.img;
-      document.getElementById('hero-tag').innerHTML = target.tag;
-      document.getElementById('hero-title').innerText = target.title;
-      document.getElementById('hero-days').innerText = target.days;
+      document.getElementById('hero-img').src = targetImg;
+      document.getElementById('hero-days').innerText = labelText;
     }
 
     function renderTabs() {
@@ -379,14 +470,25 @@
       days.forEach(day => {
         const itemData = allData.find(d => d.day === day);
         const dateStr = itemData && itemData.date ? itemData.date.substring(5) : '';
+        const dayNum = parseInt(day.replace('Day', '').trim()) || 1;
+
+        // 判斷是否屬於 D1~D4 或 D5~D9 淡粉色系分區
+        const isPinkZone = (dayNum >= 1 && dayNum <= 9);
+        const isActive = (day === currentDay);
+
+        let btnClass = "px-4 py-2 text-xs font-bold rounded-2xl whitespace-nowrap transition-all flex flex-col items-center shrink-0 border ";
+
+        if (isActive) {
+          btnClass += isPinkZone ? "active-tab-pink scale-105" : "active-tab-default scale-105";
+        } else {
+          btnClass += isPinkZone 
+            ? "bg-rose-50/70 text-rose-700 border-rose-200/80 hover:bg-rose-100/80" 
+            : "bg-white text-slate-600 hover:bg-slate-100 border-slate-200";
+        }
 
         const btn = document.createElement('button');
-        btn.className = `px-4 py-2 text-xs font-bold rounded-2xl whitespace-nowrap transition-all flex flex-col items-center shrink-0 ${
-          day === currentDay 
-            ? 'active-tab scale-105' 
-            : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
-        }`;
-        btn.innerHTML = `<span>${day}</span>${dateStr ? `<span class="text-[10px] opacity-75 font-medium">${dateStr}</span>` : ''}`;
+        btn.className = btnClass;
+        btn.innerHTML = `<span>${day}</span>${dateStr ? `<span class="text-[10px] opacity-80 font-medium">${dateStr}</span>` : ''}`;
         btn.onclick = () => {
           currentDay = day;
           updateHeroSection(day);
@@ -408,10 +510,10 @@
         return;
       }
 
-      container.innerHTML = filteredData.map(item => {
+      container.innerHTML = filteredData.map((item, index) => {
         const catStyle = getCategoryStyle(item.category);
         return `
-          <div class="light-card rounded-3xl overflow-hidden transition-all duration-300 hover:shadow-md">
+          <div class="relative z-10 light-card rounded-3xl overflow-hidden transition-all duration-300 hover:shadow-md">
             
             ${item.image1 ? `
               <div class="grid ${item.image2 ? 'grid-cols-2' : 'grid-cols-1'} gap-1 bg-slate-100 overflow-hidden">
@@ -420,29 +522,29 @@
               </div>
             ` : ''}
             
-            <div class="p-4.5">
-              <div class="flex items-center justify-between mb-2.5">
-                <span class="text-[11px] font-bold text-blue-600 bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-xl flex items-center gap-1.5">
+            <div class="p-4 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-[11px] font-bold text-blue-600 bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-xl flex items-center gap-1.5 leading-none">
                   <i class="fa-regular fa-clock text-[10px]"></i>${item.time || '整天'}
                 </span>
-                <span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-xl border ${catStyle.bg} flex items-center gap-1">
+                <span class="text-[11px] font-semibold px-2.5 py-1 rounded-xl border ${catStyle.bg} flex items-center gap-1 leading-none">
                   <i class="fa-solid ${catStyle.icon} text-[10px]"></i>${item.category}
                 </span>
               </div>
 
-              <h3 class="text-base font-bold text-slate-900 mb-1.5 leading-snug">${item.title}</h3>
+              <h3 class="text-base font-bold text-slate-900 leading-tight">${item.title}</h3>
               
-              <!-- 地點 (帶點擊地圖連結，取消獨立大導航按鈕) -->
+              <!-- 地點 (點擊直接開啟 Google 地圖) -->
               ${item.location ? `
-                <p class="text-xs text-slate-500 mb-2.5 flex items-center">
+                <p class="text-xs text-slate-500 flex items-center leading-normal">
                   <i class="fa-solid fa-location-dot text-rose-500 mr-1.5 shrink-0"></i>
-                  <a href="${item.maps_url || '#'}" target="_blank" class="hover:underline hover:text-blue-600 font-semibold truncate">${item.location} (點擊開啟地圖)</a>
+                  <a href="${item.maps_url || '#'}" target="_blank" class="hover:underline hover:text-blue-600 font-semibold truncate">${item.location}</a>
                 </p>
               ` : ''}
 
-              <!-- 備註說明 -->
+              <!-- 行程介紹 / 備註說明 (滿版緊密留白處理) -->
               ${item.notes ? `
-                <div class="text-xs text-slate-600 bg-slate-50 p-3 rounded-2xl border border-slate-100 mb-1 whitespace-pre-line leading-relaxed">
+                <div class="text-xs text-slate-700 bg-slate-50 p-3 rounded-2xl border border-slate-100/80 whitespace-pre-line leading-relaxed mt-1">
                   ${item.notes}
                 </div>
               ` : ''}
@@ -450,6 +552,67 @@
           </div>
         `;
       }).join('');
+    }
+
+    /* Modal 功能控制 */
+    function openEditModal() {
+      const selectDay = document.getElementById('edit-day');
+      selectDay.innerHTML = '';
+      for(let i = 1; i <= 16; i++) {
+        const dayVal = `Day ${i}`;
+        const opt = document.createElement('option');
+        opt.value = dayVal;
+        opt.innerText = dayVal;
+        if(dayVal === currentDay) opt.selected = true;
+        selectDay.appendChild(opt);
+      }
+      document.getElementById('edit-modal').classList.remove('hidden');
+    }
+
+    function closeEditModal() {
+      document.getElementById('edit-modal').classList.add('hidden');
+    }
+
+    function saveNewItinerary() {
+      const day = document.getElementById('edit-day').value;
+      const time = document.getElementById('edit-time').value.trim();
+      const title = document.getElementById('edit-title').value.trim();
+      const category = document.getElementById('edit-category').value;
+      const location = document.getElementById('edit-location').value.trim();
+      const maps_url = document.getElementById('edit-maps-url').value.trim();
+      const notes = document.getElementById('edit-notes').value.trim();
+
+      if (!title) {
+        alert('請至少輸入行程名稱！');
+        return;
+      }
+
+      const newItem = {
+        day: day,
+        date: '',
+        time: time || '12:00',
+        title: title,
+        category: category,
+        location: location,
+        maps_url: maps_url || '#',
+        image1: 'https://images.unsplash.com/photo-1503899036084-c55cdd92da26?q=80&w=800',
+        image2: '',
+        notes: notes
+      };
+
+      allData.push(newItem);
+      currentDay = day;
+      closeEditModal();
+      renderTabs();
+      
+      // 清空表單
+      document.getElementById('edit-time').value = '';
+      document.getElementById('edit-title').value = '';
+      document.getElementById('edit-location').value = '';
+      document.getElementById('edit-maps-url').value = '';
+      document.getElementById('edit-notes').value = '';
+
+      alert('新行程已成功新增！');
     }
 
     function openExpenseModal() {
