@@ -48,10 +48,10 @@
     }
 
     /* 各分區頁籤預設淺色底色 */
-    .tab-region-1 { background-color: #f0f9ff; color: #0369a1; border: 1px solid #bae6fd; } /* 藍色系 D1-D4 */
-    .tab-region-2 { background-color: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; } /* 綠色系 D5-D9 */
-    .tab-region-3 { background-color: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; } /* 橘色系 D10-D12 */
-    .tab-region-4 { background-color: #faf5ff; color: #7e22ce; border: 1px solid #e9d5ff; } /* 紫色系 D13-D16 */
+    .tab-region-1 { background-color: #f0f9ff; color: #0369a1; border: 1px solid #bae6fd; }
+    .tab-region-2 { background-color: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+    .tab-region-3 { background-color: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
+    .tab-region-4 { background-color: #faf5ff; color: #7e22ce; border: 1px solid #e9d5ff; }
 
     /* 啟用狀態高亮 */
     .active-tab {
@@ -81,19 +81,16 @@
       </div>
 
       <div class="flex items-center space-x-2">
-        <!-- 編輯行程按鈕 -->
-        <button onclick="openEditItineraryModal()" class="px-3 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs rounded-xl shadow-md shadow-blue-500/20 active:scale-95 transition flex items-center space-x-1">
+        <button onclick="openEditItineraryModal()" class="px-3.5 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs rounded-xl shadow-md shadow-blue-500/20 active:scale-95 transition flex items-center space-x-1.5">
           <i class="fa-solid fa-pen-to-square"></i>
-          <span>編輯行程</span>
+          <span>編輯</span>
         </button>
 
-        <!-- 記帳按鈕 -->
-        <button onclick="openExpenseModal()" class="px-3 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-500/20 active:scale-95 transition flex items-center space-x-1">
+        <button onclick="openExpenseModal()" class="px-3.5 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-500/20 active:scale-95 transition flex items-center space-x-1.5">
           <i class="fa-solid fa-wallet"></i>
           <span>記帳</span>
         </button>
 
-        <!-- 重新整理 -->
         <button onclick="fetchSheetData()" title="重新整理" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl border border-slate-200 active:scale-90 transition">
           <i class="fa-solid fa-arrows-rotate text-xs"></i>
         </button>
@@ -128,9 +125,8 @@
     </div>
   </section>
 
-  <!-- 行程卡片明細區域（帶有垂直藍色連接線） -->
+  <!-- 行程卡片明細區域 -->
   <main class="max-w-md mx-auto px-4 mt-5 relative">
-    <!-- 垂直時間軸藍色串聯線 -->
     <div class="absolute left-8 top-3 bottom-3 w-0.5 bg-blue-500/30 z-0"></div>
 
     <div id="itinerary-list" class="space-y-6 relative z-10">
@@ -141,11 +137,10 @@
     </div>
   </main>
 
-  <!-- 編輯/新增行程對話框 (Edit Itinerary Modal) -->
+  <!-- 編輯/新增行程對話框 -->
   <div id="edit-itinerary-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden transition-opacity">
     <div class="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl border border-slate-200 flex flex-col max-h-[88vh]">
       
-      <!-- Modal Header -->
       <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
         <div class="flex items-center space-x-2.5">
           <div class="w-8 h-8 rounded-xl bg-blue-100 border border-blue-200 flex items-center justify-center text-blue-600">
@@ -153,7 +148,7 @@
           </div>
           <div>
             <h3 class="font-bold text-sm text-slate-900">新增/編輯行程</h3>
-            <p class="text-[10px] text-slate-500">快速新增自訂行程至當前天數</p>
+            <p class="text-[10px] text-slate-500">將新行程直接同步至雲端 Excel</p>
           </div>
         </div>
         <button onclick="closeEditItineraryModal()" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg transition">
@@ -161,13 +156,11 @@
         </button>
       </div>
 
-      <!-- Modal Content Body -->
       <div class="p-5 overflow-y-auto space-y-4 no-scrollbar">
         <div class="grid grid-cols-2 gap-2.5 text-xs">
           <div>
             <label class="block text-[11px] font-bold text-slate-700 mb-1">天數 (Day)</label>
             <select id="edit-day" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2 font-bold focus:outline-none focus:border-blue-500">
-              <!-- JS 動態生成選項 -->
             </select>
           </div>
           <div>
@@ -208,12 +201,11 @@
           <textarea id="edit-notes" rows="3" placeholder="請輸入行程詳細介紹與注意事項..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-normal focus:outline-none focus:border-blue-500 text-xs leading-relaxed"></textarea>
         </div>
 
-        <button onclick="saveNewItineraryItem()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs py-2.5 rounded-xl transition shadow-md active:scale-[0.98]">
-          確認新增行程項目
+        <button id="btn-save-itinerary" onclick="saveNewItineraryItem()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs py-2.5 rounded-xl transition shadow-md active:scale-[0.98]">
+          確認新增並同步至雲端
         </button>
       </div>
 
-      <!-- Modal Footer -->
       <div class="px-5 py-3 border-t border-slate-100 bg-slate-50/80 text-center">
         <button onclick="closeEditItineraryModal()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs py-2 rounded-xl transition">
           取消
@@ -222,11 +214,10 @@
     </div>
   </div>
 
-  <!-- 記帳對話框 (Expense Logger Modal) -->
+  <!-- 記帳對話框 -->
   <div id="expense-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden transition-opacity">
     <div class="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl border border-slate-200 flex flex-col max-h-[88vh]">
       
-      <!-- Modal Header -->
       <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
         <div class="flex items-center space-x-2.5">
           <div class="w-8 h-8 rounded-xl bg-emerald-100 border border-emerald-200 flex items-center justify-center text-emerald-600">
@@ -234,7 +225,7 @@
           </div>
           <div>
             <h3 class="font-bold text-sm text-slate-900">旅費記帳與累計支出</h3>
-            <p class="text-[10px] text-slate-500">即時記錄與檢視每日花費收支</p>
+            <p class="text-[10px] text-slate-500">即時同步記錄至 Google 試算表</p>
           </div>
         </div>
         <button onclick="closeExpenseModal()" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg transition">
@@ -242,10 +233,7 @@
         </button>
       </div>
 
-      <!-- Modal Content Body -->
       <div class="p-5 overflow-y-auto space-y-5 no-scrollbar">
-        
-        <!-- 新增記帳表單 -->
         <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-3">
           <div class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
             <i class="fa-solid fa-plus-circle text-emerald-500"></i>新增花費項目
@@ -279,36 +267,31 @@
             </div>
           </div>
 
-          <button onclick="addExpenseRecord()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2 rounded-xl transition shadow-sm active:scale-[0.98]">
-            加入記帳紀錄
+          <button id="btn-save-expense" onclick="addExpenseRecord()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2 rounded-xl transition shadow-sm active:scale-[0.98]">
+            同步儲存記帳紀錄
           </button>
         </div>
 
-        <!-- 分類累計彙總 -->
         <div class="space-y-2">
           <div class="text-xs font-bold text-slate-800 flex justify-between items-center">
             <span>分類總支出累計</span>
             <span class="text-[10px] text-slate-400">匯率預設 0.22</span>
           </div>
           <div id="expense-category-summary" class="grid grid-cols-2 gap-2 text-xs">
-            <!-- JS 渲染分類累計 -->
           </div>
         </div>
 
-        <!-- 每日花費明細歷史清單 -->
         <div class="space-y-2">
           <div class="text-xs font-bold text-slate-800 flex justify-between items-center">
             <span>歷史記帳明細</span>
             <span id="grand-total-amount" class="text-xs font-black text-emerald-600">總計：NT$ 0</span>
           </div>
           <div id="expense-log-list" class="space-y-2 text-xs max-h-48 overflow-y-auto no-scrollbar">
-            <!-- JS 渲染歷史紀錄 -->
           </div>
         </div>
 
       </div>
 
-      <!-- Modal Footer -->
       <div class="px-5 py-3 border-t border-slate-100 bg-slate-50/80 text-center">
         <button onclick="closeExpenseModal()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs py-2.5 rounded-xl transition">
           關閉記帳視窗
@@ -319,6 +302,9 @@
 
   <script>
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTts06Ox6sW_FnwFO4GPKhHG22aAcTu5wtGZEHXVS2WH7CP8_PYVrQbangzokCVhw/pub?output=csv';
+    
+    // ⚠️ 請將下方的 URL 替換為第一步發布 GAS 取得的 Web 應用程式網址 ⚠️
+    const API_URL = 'https://script.google.com/macros/s/AKfycbwCC6tNxYpoLfiu-o6fZ1SxeRyunE5g7l5BOeX95xaIUxTcUGO-P4YgpXLTbwdRF48H/exec';
 
     let allData = [];
     let currentDay = '';
@@ -350,32 +336,31 @@
       }
     };
 
-    let expenseRecords = [
-      { date: '2027-01-24', category: '超市', name: 'OK Store 刺身熟食與飲料', amountJpy: 3200 },
-      { date: '2027-01-24', category: '餐廳', name: '藤澤拉麵午餐', amountJpy: 2200 },
-      { date: '2027-01-25', category: '玩樂', name: '江之島海燭燈塔門票', amountJpy: 1000 },
-      { date: '2027-01-25', category: '餐廳', name: '吻仔魚海鮮丼', amountJpy: 3600 },
-      { date: '2027-01-28', category: '車資', name: '品川 ORIX 租車自駕', amountJpy: 68000 }
-    ];
+    let expenseRecords = [];
+
+    function loadExpensesFromStorage() {
+      const stored = localStorage.getItem('fuji_expense_records');
+      if (stored) {
+        try { expenseRecords = JSON.parse(stored); } catch(e) { expenseRecords = []; }
+      }
+    }
+
+    function saveExpensesToStorage() {
+      localStorage.setItem('fuji_expense_records', JSON.stringify(expenseRecords));
+    }
 
     function getCategoryStyle(category) {
       switch(category) {
-        case '住宿':
-          return { bg: 'bg-indigo-50 text-indigo-600 border-indigo-200', icon: 'fa-hotel' };
+        case '住宿': return { bg: 'bg-indigo-50 text-indigo-600 border-indigo-200', icon: 'fa-hotel' };
         case '美食':
-        case '餐廳':
-          return { bg: 'bg-rose-50 text-rose-600 border-rose-200', icon: 'fa-utensils' };
+        case '餐廳': return { bg: 'bg-rose-50 text-rose-600 border-rose-200', icon: 'fa-utensils' };
         case '採買':
         case '超市':
-        case '購物':
-          return { bg: 'bg-emerald-50 text-emerald-600 border-emerald-200', icon: 'fa-cart-shopping' };
+        case '購物': return { bg: 'bg-emerald-50 text-emerald-600 border-emerald-200', icon: 'fa-cart-shopping' };
         case '交通':
-        case '車資':
-          return { bg: 'bg-sky-50 text-sky-600 border-sky-200', icon: 'fa-car' };
-        case '玩樂':
-          return { bg: 'bg-amber-50 text-amber-600 border-amber-200', icon: 'fa-ticket' };
-        default:
-          return { bg: 'bg-slate-100 text-slate-600 border-slate-200', icon: 'fa-camera' };
+        case '車資': return { bg: 'bg-sky-50 text-sky-600 border-sky-200', icon: 'fa-car' };
+        case '玩樂': return { bg: 'bg-amber-50 text-amber-600 border-amber-200', icon: 'fa-ticket' };
+        default: return { bg: 'bg-slate-100 text-slate-600 border-slate-200', icon: 'fa-camera' };
       }
     }
 
@@ -427,9 +412,7 @@
 
             renderTabs();
           },
-          error: function(err) {
-            showError('CSV 格式解析錯誤：' + err.message);
-          }
+          error: function(err) { showError('CSV 格式解析錯誤：' + err.message); }
         });
 
       } catch (error) {
@@ -454,15 +437,10 @@
       const dayNum = parseInt(dayStr.replace(/[^0-9]/g, '')) || 1;
       let target = regionInfo.fujisawa;
 
-      if (dayNum >= 1 && dayNum <= 4) {
-        target = regionInfo.fujisawa;
-      } else if (dayNum >= 5 && dayNum <= 9) {
-        target = regionInfo.fuji;
-      } else if (dayNum >= 10 && dayNum <= 12) {
-        target = regionInfo.nagano;
-      } else if (dayNum >= 13) {
-        target = regionInfo.yokohama;
-      }
+      if (dayNum >= 1 && dayNum <= 4) target = regionInfo.fujisawa;
+      else if (dayNum >= 5 && dayNum <= 9) target = regionInfo.fuji;
+      else if (dayNum >= 10 && dayNum <= 12) target = regionInfo.nagano;
+      else if (dayNum >= 13) target = regionInfo.yokohama;
 
       document.getElementById('hero-img').src = target.img;
       document.getElementById('hero-tag').innerHTML = target.tag;
@@ -513,15 +491,12 @@
         return;
       }
 
-      container.innerHTML = filteredData.map((item, index) => {
+      container.innerHTML = filteredData.map((item) => {
         const catStyle = getCategoryStyle(item.category);
         return `
           <div class="relative pl-10">
-            <!-- 藍色連線節點圓圈 -->
             <div class="absolute left-2.5 top-5 w-3 h-3 rounded-full bg-blue-600 border-2 border-white shadow-md z-20"></div>
-
             <div class="light-card rounded-3xl overflow-hidden transition-all duration-300 hover:shadow-md p-4">
-              
               ${item.image1 ? `
                 <div class="grid ${item.image2 ? 'grid-cols-2' : 'grid-cols-1'} gap-1 bg-slate-100 overflow-hidden rounded-2xl mb-3">
                   <img src="${item.image1}" class="w-full h-36 object-cover" onerror="this.style.display='none'">
@@ -530,7 +505,6 @@
               ` : ''}
               
               <div class="space-y-1">
-                <!-- 時間與分類 -->
                 <div class="flex items-center justify-between">
                   <span class="text-xs font-bold text-blue-600 flex items-center gap-1">
                     <i class="fa-regular fa-clock text-[11px]"></i>${item.time || '整天'}
@@ -540,10 +514,8 @@
                   </span>
                 </div>
 
-                <!-- 行程名稱（緊湊無留白） -->
                 <h3 class="text-base font-extrabold text-slate-900 leading-tight">${item.title}</h3>
                 
-                <!-- 地點 -->
                 ${item.location ? `
                   <p class="text-xs text-slate-500 flex items-center pt-0.5">
                     <i class="fa-solid fa-location-dot text-rose-500 mr-1 shrink-0"></i>
@@ -551,7 +523,6 @@
                   </p>
                 ` : ''}
 
-                <!-- 行程介紹/備註（貼緊無多餘留白） -->
                 ${item.notes ? `
                   <div class="text-xs text-slate-600 bg-slate-50 p-2.5 rounded-xl border border-slate-100 mt-2 whitespace-pre-line leading-relaxed">
                     ${item.notes}
@@ -564,7 +535,7 @@
       }).join('');
     }
 
-    /* 編輯行程功能 */
+    /* 編輯行程功能（同步至 GAS API） */
     function openEditItineraryModal() {
       const daySelect = document.getElementById('edit-day');
       daySelect.innerHTML = '';
@@ -585,7 +556,7 @@
       document.getElementById('edit-itinerary-modal').classList.add('hidden');
     }
 
-    function saveNewItineraryItem() {
+    async function saveNewItineraryItem() {
       const day = document.getElementById('edit-day').value;
       const time = document.getElementById('edit-time').value.trim();
       const title = document.getElementById('edit-title').value.trim();
@@ -600,6 +571,7 @@
       }
 
       const newItem = {
+        action: 'addItinerary',
         day,
         date: '',
         time: time || '12:00',
@@ -607,27 +579,47 @@
         category,
         location,
         maps_url: mapsUrl || `https://maps.google.com/?q=${encodeURIComponent(location || title)}`,
-        image1: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=800',
+        image1: '',
         image2: '',
         notes
       };
 
-      allData.push(newItem);
-      currentDay = day;
-      
-      // 清空輸入框
-      document.getElementById('edit-time').value = '';
-      document.getElementById('edit-title').value = '';
-      document.getElementById('edit-location').value = '';
-      document.getElementById('edit-maps-url').value = '';
-      document.getElementById('edit-notes').value = '';
+      const btn = document.getElementById('btn-save-itinerary');
+      btn.innerText = '正在寫入雲端 Excel...';
+      btn.disabled = true;
 
-      closeEditItineraryModal();
-      renderTabs();
-      renderItinerary();
+      try {
+        if (API_URL !== 'YOUR_GAS_WEB_APP_URL') {
+          await fetch(API_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newItem)
+          });
+        }
+
+        allData.push(newItem);
+        currentDay = day;
+        
+        document.getElementById('edit-time').value = '';
+        document.getElementById('edit-title').value = '';
+        document.getElementById('edit-location').value = '';
+        document.getElementById('edit-maps-url').value = '';
+        document.getElementById('edit-notes').value = '';
+
+        closeEditItineraryModal();
+        renderTabs();
+        renderItinerary();
+        alert('行程已成功新增並同步至雲端 Excel！');
+      } catch (err) {
+        alert('寫入失敗：' + err.message);
+      } finally {
+        btn.innerText = '確認新增並同步至雲端';
+        btn.disabled = false;
+      }
     }
 
-    /* 記帳功能 */
+    /* 記帳功能（同步至 GAS API 與 LocalStorage 備份） */
     function openExpenseModal() {
       document.getElementById('expense-modal').classList.remove('hidden');
       renderExpenseLog();
@@ -637,7 +629,7 @@
       document.getElementById('expense-modal').classList.add('hidden');
     }
 
-    function addExpenseRecord() {
+    async function addExpenseRecord() {
       const date = document.getElementById('exp-date').value;
       const category = document.getElementById('exp-category').value;
       const name = document.getElementById('exp-name').value.trim();
@@ -648,10 +640,35 @@
         return;
       }
 
-      expenseRecords.unshift({ date, category, name, amountJpy });
-      document.getElementById('exp-name').value = '';
-      document.getElementById('exp-amount').value = '';
-      renderExpenseLog();
+      const record = { action: 'addExpense', date, category, name, amountJpy };
+
+      const btn = document.getElementById('btn-save-expense');
+      btn.innerText = '同步寫入中...';
+      btn.disabled = true;
+
+      try {
+        if (API_URL !== 'YOUR_GAS_WEB_APP_URL') {
+          await fetch(API_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(record)
+          });
+        }
+
+        expenseRecords.unshift({ date, category, name, amountJpy });
+        saveExpensesToStorage();
+
+        document.getElementById('exp-name').value = '';
+        document.getElementById('exp-amount').value = '';
+        renderExpenseLog();
+        alert('記帳紀錄已寫入雲端試算表！');
+      } catch (err) {
+        alert('記帳寫入失敗：' + err.message);
+      } finally {
+        btn.innerText = '同步儲存記帳紀錄';
+        btn.disabled = false;
+      }
     }
 
     function renderExpenseLog() {
@@ -696,7 +713,10 @@
       `).join('');
     }
 
-    window.addEventListener('DOMContentLoaded', fetchSheetData);
+    window.addEventListener('DOMContentLoaded', () => {
+      loadExpensesFromStorage();
+      fetchSheetData();
+    });
   </script>
 </body>
 </html>
