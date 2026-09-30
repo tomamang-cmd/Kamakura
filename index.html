@@ -148,7 +148,7 @@
           </div>
           <div>
             <h3 class="font-bold text-sm text-slate-900">新增/編輯行程</h3>
-            <p class="text-[10px] text-slate-500">將新行程直接同步至雲端 Excel</p>
+            <p class="text-[10px] text-slate-500">將新行程同步至雲端並自動排序</p>
           </div>
         </div>
         <button onclick="closeEditItineraryModal()" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg transition">
@@ -225,7 +225,7 @@
           </div>
           <div>
             <h3 class="font-bold text-sm text-slate-900">旅費記帳與累計支出</h3>
-            <p class="text-[10px] text-slate-500">即時同步記錄至 Google 試算表</p>
+            <p class="text-[10px] text-slate-500">同步寫入雲端「記帳備忘錄」</p>
           </div>
         </div>
         <button onclick="closeExpenseModal()" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg transition">
@@ -242,7 +242,7 @@
           <div class="grid grid-cols-2 gap-2.5 text-xs">
             <div>
               <label class="block text-[11px] text-slate-500 mb-1">日期</label>
-              <input type="date" id="exp-date" value="2027-01-24" class="w-full bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 font-bold focus:outline-none focus:border-emerald-500">
+              <input type="date" id="exp-date" value="2027-02-08" class="w-full bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 font-bold focus:outline-none focus:border-emerald-500">
             </div>
             <div>
               <label class="block text-[11px] text-slate-500 mb-1">分類</label>
@@ -250,7 +250,7 @@
                 <option value="超市">🛒 超市</option>
                 <option value="餐廳">🍜 餐廳</option>
                 <option value="車資">🚗 車資</option>
-                <option value="玩樂">🎟️ 玩樂</option>
+                <option value="玩樂">🎟️️ 玩樂</option>
                 <option value="其他">📦 其他</option>
               </select>
             </div>
@@ -268,7 +268,7 @@
           </div>
 
           <button id="btn-save-expense" onclick="addExpenseRecord()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2 rounded-xl transition shadow-sm active:scale-[0.98]">
-            同步儲存記帳紀錄
+            同步寫入雲端試算表
           </button>
         </div>
 
@@ -287,6 +287,7 @@
             <span id="grand-total-amount" class="text-xs font-black text-emerald-600">總計：NT$ 0</span>
           </div>
           <div id="expense-log-list" class="space-y-2 text-xs max-h-48 overflow-y-auto no-scrollbar">
+            <div class="text-center text-slate-400 py-4">正在載入記帳明細...</div>
           </div>
         </div>
 
@@ -303,11 +304,13 @@
   <script>
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTts06Ox6sW_FnwFO4GPKhHG22aAcTu5wtGZEHXVS2WH7CP8_PYVrQbangzokCVhw/pub?output=csv';
     
-    // ⚠️ 請將下方的 URL 替換為第一步發布 GAS 取得的 Web 應用程式網址 ⚠️
+    // ⚠️ 請填入第一步發布 GAS 得到的 Web 應用程式網址 ⚠️
     const API_URL = 'https://script.google.com/macros/s/AKfycbwCC6tNxYpoLfiu-o6fZ1SxeRyunE5g7l5BOeX95xaIUxTcUGO-P4YgpXLTbwdRF48H/exec';
 
     let allData = [];
     let currentDay = '';
+    let dayDateMap = {}; // 用於對照 Day1 -> 2027-02-08 的日期映射
+    let expenseRecords = [];
 
     const regionInfo = {
       fujisawa: {
@@ -335,19 +338,6 @@
         img: 'https://static.gltjp.com/glt/data/article/21000/20427/20230919_135547_2364c1f3_w1920.webp'
       }
     };
-
-    let expenseRecords = [];
-
-    function loadExpensesFromStorage() {
-      const stored = localStorage.getItem('fuji_expense_records');
-      if (stored) {
-        try { expenseRecords = JSON.parse(stored); } catch(e) { expenseRecords = []; }
-      }
-    }
-
-    function saveExpensesToStorage() {
-      localStorage.setItem('fuji_expense_records', JSON.stringify(expenseRecords));
-    }
 
     function getCategoryStyle(category) {
       switch(category) {
@@ -391,9 +381,16 @@
           complete: function(results) {
             allData = results.data.map(row => {
               const keys = Object.keys(row);
+              const day = row[keys[0]] || row['Day'] || '';
+              const date = row[keys[1]] || row['Date'] || '';
+              
+              if (day && date && !dayDateMap[day]) {
+                dayDateMap[day] = date; // 建立了 Day 到 日期的映射關係
+              }
+
               return {
-                day: row[keys[0]] || row['Day'] || '',
-                date: row[keys[1]] || row['Date'] || '',
+                day: day,
+                date: date,
                 time: row[keys[2]] || row['Time'] || '',
                 title: row[keys[3]] || row['Title'] || '無標題',
                 category: row[keys[4]] || row['Category'] || '行程',
@@ -535,7 +532,7 @@
       }).join('');
     }
 
-    /* 編輯行程功能（同步至 GAS API） */
+    /* 編輯行程功能 */
     function openEditItineraryModal() {
       const daySelect = document.getElementById('edit-day');
       daySelect.innerHTML = '';
@@ -570,22 +567,25 @@
         return;
       }
 
+      // 自動帶出該 Day 對應的真實日期 (例如 Day1 -> 2027-02-08)
+      const mappedDate = dayDateMap[day] || '';
+
       const newItem = {
         action: 'addItinerary',
-        day,
-        date: '',
+        day: day,
+        date: mappedDate,
         time: time || '12:00',
-        title,
-        category,
-        location,
+        title: title,
+        category: category,
+        location: location,
         maps_url: mapsUrl || `https://maps.google.com/?q=${encodeURIComponent(location || title)}`,
         image1: '',
         image2: '',
-        notes
+        notes: notes
       };
 
       const btn = document.getElementById('btn-save-itinerary');
-      btn.innerText = '正在寫入雲端 Excel...';
+      btn.innerText = '正在寫入並自動排序...';
       btn.disabled = true;
 
       try {
@@ -598,9 +598,6 @@
           });
         }
 
-        allData.push(newItem);
-        currentDay = day;
-        
         document.getElementById('edit-time').value = '';
         document.getElementById('edit-title').value = '';
         document.getElementById('edit-location').value = '';
@@ -608,9 +605,13 @@
         document.getElementById('edit-notes').value = '';
 
         closeEditItineraryModal();
-        renderTabs();
-        renderItinerary();
-        alert('行程已成功新增並同步至雲端 Excel！');
+        
+        // 重新讀取雲端最新資料（此時已經在 Excel 內自動整理排序完成）
+        setTimeout(() => {
+          fetchSheetData();
+          alert('行程已寫入 Excel 並自動完成時間排序！');
+        }, 1500);
+
       } catch (err) {
         alert('寫入失敗：' + err.message);
       } finally {
@@ -619,14 +620,35 @@
       }
     }
 
-    /* 記帳功能（同步至 GAS API 與 LocalStorage 備份） */
-    function openExpenseModal() {
+    /* 記帳功能（向「記帳備忘錄」讀取與寫入） */
+    async function openExpenseModal() {
       document.getElementById('expense-modal').classList.remove('hidden');
-      renderExpenseLog();
+      await fetchExpenseLogs();
     }
 
     function closeExpenseModal() {
       document.getElementById('expense-modal').classList.add('hidden');
+    }
+
+    async function fetchExpenseLogs() {
+      const logContainer = document.getElementById('expense-log-list');
+      if (API_URL === 'YOUR_GAS_WEB_APP_URL') {
+        renderExpenseLog();
+        return;
+      }
+
+      try {
+        const res = await fetch(API_URL);
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data)) {
+            expenseRecords = data;
+          }
+        }
+      } catch (err) {
+        console.error('無法取得歷史記帳：', err);
+      }
+      renderExpenseLog();
     }
 
     async function addExpenseRecord() {
@@ -643,7 +665,7 @@
       const record = { action: 'addExpense', date, category, name, amountJpy };
 
       const btn = document.getElementById('btn-save-expense');
-      btn.innerText = '同步寫入中...';
+      btn.innerText = '寫入記帳備忘錄中...';
       btn.disabled = true;
 
       try {
@@ -657,16 +679,15 @@
         }
 
         expenseRecords.unshift({ date, category, name, amountJpy });
-        saveExpensesToStorage();
-
         document.getElementById('exp-name').value = '';
         document.getElementById('exp-amount').value = '';
+        
         renderExpenseLog();
-        alert('記帳紀錄已寫入雲端試算表！');
+        alert('已成功新增至 Excel 的「記帳備忘錄」工作表！');
       } catch (err) {
         alert('記帳寫入失敗：' + err.message);
       } finally {
-        btn.innerText = '同步儲存記帳紀錄';
+        btn.innerText = '同步寫入雲端試算表';
         btn.disabled = false;
       }
     }
@@ -714,7 +735,6 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-      loadExpensesFromStorage();
       fetchSheetData();
     });
   </script>
