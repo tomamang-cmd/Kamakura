@@ -362,62 +362,76 @@
       return 'tab-region-4';
     }
 
-    async function fetchSheetData() {
-      const container = document.getElementById('itinerary-list');
-      container.innerHTML = `
-        <div class="text-center py-20 text-slate-400 flex flex-col items-center justify-center space-y-3">
-          <i class="fa-solid fa-circle-notch fa-spin text-3xl text-blue-500"></i>
-          <p class="text-xs font-medium tracking-wider">正在連線讀取最新行程...</p>
-        </div>`;
+async function fetchSheetData() {
+  const container = document.getElementById('itinerary-list');
+  container.innerHTML = `
+    <div class="text-center py-20 text-slate-400 flex flex-col items-center justify-center space-y-3">
+      <i class="fa-solid fa-circle-notch fa-spin text-3xl text-blue-500"></i>
+      <p class="text-xs font-medium tracking-wider">正在連線讀取最新行程...</p>
+    </div>`;
 
-      try {
-        const response = await fetch(CSV_URL);
-        if (!response.ok) throw new Error('無法讀取 Google 試算表，請檢查網路連線');
-        const csvText = await response.text();
-        
-        Papa.parse(csvText, {
-          header: true,
-          skipEmptyLines: true,
-          complete: function(results) {
-            allData = results.data.map(row => {
-              const keys = Object.keys(row);
-              const day = row[keys[0]] || row['Day'] || '';
-              const date = row[keys[1]] || row['Date'] || '';
-              
-              if (day && date && !dayDateMap[day]) {
-                dayDateMap[day] = date; // 建立了 Day 到 日期的映射關係
-              }
+  try {
+    // 💡 加上防快取機制，確保拿到最新的 Excel 變更
+    const cacheBuster = new Date().getTime();
+    const fetchUrl = CSV_URL.includes('?') 
+      ? `${CSV_URL}&_cb=${cacheBuster}` 
+      : `${CSV_URL}?_cb=${cacheBuster}`;
 
-              return {
-                day: day,
-                date: date,
-                time: row[keys[2]] || row['Time'] || '',
-                title: row[keys[3]] || row['Title'] || '無標題',
-                category: row[keys[4]] || row['Category'] || '行程',
-                location: row[keys[5]] || row['Location'] || '',
-                maps_url: row[keys[6]] || row['Maps_URL'] || '',
-                image1: row[keys[7]] || row['Image_URL_1'] || row['Image_URL'] || '',
-                image2: row[keys[8]] || row['Image_URL_2'] || '',
-                notes: row[keys[9]] || row['Notes'] || ''
-              };
-            }).filter(item => item.day && item.day.trim() !== '');
+    const response = await fetch(fetchUrl);
+    if (!response.ok) throw new Error('無法讀取 Google 試算表，請檢查網路連線');
+    const csvText = await response.text();
+    
+    Papa.parse(csvText, {
+      header: true,
+      skipEmptyLines: true,
+      complete: function(results) {
+        allData = results.data.map(row => {
+          const keys = Object.keys(row);
+          // 去除 Day 字串前後多餘的空白
+          const day = (row[keys[0]] || row['Day'] || '').toString().trim();
+          const date = (row[keys[1]] || row['Date'] || '').toString().trim();
+          
+          if (day && date && !dayDateMap[day]) {
+            dayDateMap[day] = date;
+          }
 
-            if (allData.length === 0) {
-              showError('未搜尋到有效的行程內容');
-              return;
-            }
+          // 清理時間格式（去除引號與多餘秒數）
+          let rawTime = (row[keys[2]] || row['Time'] || '').toString().trim();
+          rawTime = rawTime.replace(/^'/, '');
+          if (rawTime.includes(':')) {
+            const timeParts = rawTime.split(':');
+            rawTime = `${timeParts[0].padStart(2, '0')}:${timeParts[1]}`;
+          }
 
-            renderTabs();
-          },
-          error: function(err) { showError('CSV 格式解析錯誤：' + err.message); }
-        });
+          return {
+            day: day,
+            date: date,
+            time: rawTime || '12:00',
+            title: row[keys[3]] || row['Title'] || '無標題',
+            category: row[keys[4]] || row['Category'] || '行程',
+            location: row[keys[5]] || row['Location'] || '',
+            maps_url: row[keys[6]] || row['Maps_URL'] || '',
+            image1: row[keys[7]] || row['Image_URL_1'] || row['Image_URL'] || '',
+            image2: row[keys[8]] || row['Image_URL_2'] || '',
+            notes: row[keys[9]] || row['Notes'] || ''
+          };
+        }).filter(item => item.day && item.day !== '');
 
-      } catch (error) {
-        console.error(error);
-        showError(error.message);
-      }
-    }
+        if (allData.length === 0) {
+          showError('未搜尋到有效的行程內容');
+          return;
+        }
 
+        renderTabs();
+      },
+      error: function(err) { showError('CSV 格式解析錯誤：' + err.message); }
+    });
+
+  } catch (error) {
+    console.error(error);
+    showError(error.message);
+  }
+}
     function showError(msg) {
       document.getElementById('itinerary-list').innerHTML = `
         <div class="text-center py-10 text-rose-500 font-semibold light-card rounded-3xl p-6 border border-rose-200">
