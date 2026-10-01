@@ -118,7 +118,7 @@
           <h2 id="hero-title" class="text-lg font-black tracking-wide drop-shadow-md">湘南海岸 & 江之電風情</h2>
         </div>
         <div class="text-right">
-          <div class="text-[10px] text-slate-300">目前分區</div>
+          <div class="text-[10px] text-slate-300">分區</div>
           <div id="hero-days" class="text-xs font-bold text-amber-300">D1 ~ D4</div>
         </div>
       </div>
@@ -459,40 +459,48 @@ async function fetchSheetData() {
       document.getElementById('hero-days').innerText = target.days;
     }
 
-    function renderTabs() {
-      const days = [...new Set(allData.map(item => item.day))].filter(Boolean);
-      const tabsContainer = document.getElementById('day-tabs');
-      tabsContainer.innerHTML = '';
+ function renderTabs() {
+  // 1. 取得所有不重複的 Day 列表
+  let days = [...new Set(allData.map(item => item.day))].filter(Boolean);
 
-      if (days.length === 0) return;
-      if (!currentDay || !days.includes(currentDay)) {
-        currentDay = days[0];
-      }
+  // 2. 💡 修正數字自然排序：將 "Day10" 提取出數字 10 進行正確的大到小/小到大數值排序
+  days.sort((a, b) => {
+    const numA = parseInt(a.replace(/[^0-9]/g, ''), 10) || 0;
+    const numB = parseInt(b.replace(/[^0-9]/g, ''), 10) || 0;
+    return numA - numB;
+  });
 
-      updateHeroSection(currentDay);
+  const tabsContainer = document.getElementById('day-tabs');
+  tabsContainer.innerHTML = '';
 
-      days.forEach(day => {
-        const itemData = allData.find(d => d.day === day);
-        const dateStr = itemData && itemData.date ? itemData.date.substring(5) : '';
-        const regionClass = getRegionClass(day);
+  if (days.length === 0) return;
+  if (!currentDay || !days.includes(currentDay)) {
+    currentDay = days[0];
+  }
 
-        const btn = document.createElement('button');
-        btn.className = `px-4 py-2 text-xs font-bold rounded-2xl whitespace-nowrap transition-all flex flex-col items-center shrink-0 ${regionClass} ${
-          day === currentDay ? 'active-tab scale-105' : 'hover:opacity-80'
-        }`;
-        btn.innerHTML = `<span>${day}</span>${dateStr ? `<span class="text-[10px] opacity-80 font-medium">${dateStr}</span>` : ''}`;
-        btn.onclick = () => {
-          currentDay = day;
-          updateHeroSection(day);
-          renderTabs();
-          renderItinerary();
-        };
-        tabsContainer.appendChild(btn);
-      });
+  updateHeroSection(currentDay);
 
+  days.forEach(day => {
+    const itemData = allData.find(d => d.day === day);
+    const dateStr = itemData && itemData.date ? itemData.date.substring(5) : '';
+    const regionClass = getRegionClass(day);
+
+    const btn = document.createElement('button');
+    btn.className = `px-4 py-2 text-xs font-bold rounded-2xl whitespace-nowrap transition-all flex flex-col items-center shrink-0 ${regionClass} ${
+      day === currentDay ? 'active-tab scale-105' : 'hover:opacity-80'
+    }`;
+    btn.innerHTML = `<span>${day}</span>${dateStr ? `<span class="text-[10px] opacity-80 font-medium">${dateStr}</span>` : ''}`;
+    btn.onclick = () => {
+      currentDay = day;
+      updateHeroSection(day);
+      renderTabs();
       renderItinerary();
-    }
+    };
+    tabsContainer.appendChild(btn);
+  });
 
+  renderItinerary();
+}
     function renderItinerary() {
       const container = document.getElementById('itinerary-list');
       const filteredData = allData.filter(item => item.day === currentDay);
