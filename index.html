@@ -267,7 +267,7 @@
             </div>
           </div>
 
-          <button id="btn-save-expense" onclick="addExpenseRecord()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2 rounded-xl transition shadow-sm active:scale-[0.98]">
+          <button id="btn-save-expense" onclick="()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2 rounded-xl transition shadow-sm active:scale-[0.98]">
             同步寫入雲端試算表
           </button>
         </div>
@@ -665,47 +665,55 @@ async function fetchSheetData() {
       renderExpenseLog();
     }
 
-    async function addExpenseRecord() {
-      const date = document.getElementById('exp-date').value;
-      const category = document.getElementById('exp-category').value;
-      const name = document.getElementById('exp-name').value.trim();
-      const amountJpy = parseInt(document.getElementById('exp-amount').value) || 0;
+   async function addExpenseRecord() {
+  const date = document.getElementById('exp-date').value;
+  const category = document.getElementById('exp-category').value;
+  const name = document.getElementById('exp-name').value.trim();
+  const amountJpy = parseInt(document.getElementById('exp-amount').value) || 0;
 
-      if (!name || amountJpy <= 0) {
-        alert('請填寫完整名稱與正確的金額！');
-        return;
-      }
+  if (!name || amountJpy <= 0) {
+    alert('請填寫完整名稱與正確的金額！');
+    return;
+  }
 
-      const record = { action: 'addExpense', date, category, name, amountJpy };
+  // 傳遞 7 個欄位所需要的參數
+  const record = { 
+    action: 'addExpense', 
+    date: date, 
+    category: category, 
+    name: name, 
+    amountJpy: amountJpy,
+    paymentMethod: '網頁記帳',
+    notes: '來自網頁端輸入'
+  };
 
-      const btn = document.getElementById('btn-save-expense');
-      btn.innerText = '寫入記帳備忘錄中...';
-      btn.disabled = true;
+  const btn = document.getElementById('btn-save-expense');
+  btn.innerText = '寫入記帳備忘錄中...';
+  btn.disabled = true;
 
-      try {
-        if (API_URL !== 'YOUR_GAS_WEB_APP_URL') {
-          await fetch(API_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(record)
-          });
-        }
-
-        expenseRecords.unshift({ date, category, name, amountJpy });
-        document.getElementById('exp-name').value = '';
-        document.getElementById('exp-amount').value = '';
-        
-        renderExpenseLog();
-        alert('已成功新增至 Excel 的「記帳備忘錄」工作表！');
-      } catch (err) {
-        alert('記帳寫入失敗：' + err.message);
-      } finally {
-        btn.innerText = '同步寫入雲端試算表';
-        btn.disabled = false;
-      }
+  try {
+    if (!API_URL.includes('YOUR_NEW')) {
+      await fetch(API_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(record)
+      });
     }
 
+    expenseRecords.unshift({ date, category, name, amountJpy });
+    document.getElementById('exp-name').value = '';
+    document.getElementById('exp-amount').value = '';
+    
+    renderExpenseLog();
+    alert('已成功新增至 Excel 的「記帳備忘錄」工作表！');
+  } catch (err) {
+    alert('記帳寫入失敗：' + err.message);
+  } finally {
+    btn.innerText = '同步寫入雲端試算表';
+    btn.disabled = false;
+  }
+}
     function renderExpenseLog() {
       const rate = 0.22;
       const categories = ['超市', '餐廳', '車資', '玩樂', '其他'];
