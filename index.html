@@ -183,6 +183,22 @@
       margin-top: 14px;
     }
 
+
+    /* ===== V2 互動地圖 ===== */
+    #region-map-svg [data-stop] { cursor: pointer; transition: opacity .2s ease, filter .2s ease; }
+    #region-map-svg .map-stop-dim { opacity: .30; }
+    #region-map-svg .map-stop-today { opacity: 1; filter: drop-shadow(0 2px 5px rgba(15,23,42,.22)); }
+    #region-map-svg .map-stop-selected { filter: drop-shadow(0 0 7px rgba(15,23,42,.38)); }
+    #region-map-svg .map-stop-today circle:first-child { stroke: #fff; stroke-width: 4; }
+    .itinerary-focus .light-card { outline: 3px solid rgba(59,130,246,.22); box-shadow: 0 12px 32px -12px rgba(37,99,235,.35); }
+    .interactive-stop-chip { transition: transform .15s ease, box-shadow .15s ease, opacity .15s ease; }
+    .interactive-stop-chip:active { transform: scale(.97); }
+    .interactive-stop-chip.is-today { box-shadow: 0 0 0 2px rgba(255,255,255,.9), 0 0 0 4px currentColor; }
+    .interactive-stop-chip.is-dim { opacity: .52; }
+    @keyframes mapPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.09)} }
+    #region-map-svg .map-stop-today { transform-box: fill-box; transform-origin: center; animation: mapPulse 1.8s ease-in-out infinite; }
+    @media (prefers-reduced-motion: reduce) { #region-map-svg .map-stop-today { animation:none; } }
+
   </style>
 </head>
 <body class="min-h-screen pb-24 selection:bg-blue-500 selection:text-white">
@@ -307,6 +323,16 @@
                 <i class="fa-solid fa-location-arrow text-[11px] mt-0.5"></i>
               </div>
               <div id="region-map-landmark" class="absolute left-4 bottom-3 z-20 px-2.5 py-1.5 rounded-xl bg-white/90 backdrop-blur border border-white/80 shadow-sm text-[10px] font-black text-slate-700"></div>
+            </div>
+
+            <div class="mt-3 flex items-center justify-between gap-2 rounded-2xl bg-slate-50 border border-slate-100 px-3 py-2.5">
+              <div class="min-w-0">
+                <div id="region-map-day-status" class="text-[10px] font-black text-slate-700">今日地圖</div>
+                <div id="region-map-selected-info" class="text-[10px] text-slate-500 mt-0.5 truncate">點地圖上的景點可查看</div>
+              </div>
+              <button id="region-map-jump-btn" type="button" onclick="jumpToSelectedStop()" class="hidden shrink-0 px-3 py-2 rounded-xl bg-blue-600 text-white text-[10px] font-black active:scale-95 transition">
+                <i class="fa-solid fa-arrow-down mr-1"></i>跳到行程
+              </button>
             </div>
 
             <div id="region-map-stop-list" class="flex gap-2 overflow-x-auto no-scrollbar mt-3 pb-1"></div>
@@ -582,13 +608,13 @@
               <g>
                 <circle cx="86" cy="69" r="7" fill="#0284c7"/><text x="68" y="56" font-size="11" font-weight="800">藤澤</text>
               </g>
-              <g>
+              <g data-stop="江之島">
                 <circle cx="107" cy="141" r="7" fill="#0284c7"/><text x="87" y="179" font-size="11" font-weight="800">江之島</text>
               </g>
-              <g>
+              <g data-stop="長谷">
                 <circle cx="183" cy="110" r="7" fill="#0284c7"/><text x="170" y="127" font-size="11" font-weight="800">長谷</text>
               </g>
-              <g>
+              <g data-stop="鎌倉">
                 <circle cx="233" cy="98" r="7" fill="#0284c7"/><text x="221" y="84" font-size="11" font-weight="800">鎌倉</text>
               </g>
             </g>
@@ -636,10 +662,10 @@
             <path d="M165 58 C188 48, 214 50, 244 65" stroke="#cbd5e1" stroke-width="6" stroke-linecap="round" fill="none"/>
             <path d="M138 88 C171 90, 191 103, 204 118" stroke="#94a3b8" stroke-width="4" stroke-dasharray="7 5" fill="none"/>
             <g fill="#0f172a" font-family="Inter, Noto Sans TC, sans-serif">
-              <g><circle cx="86" cy="55" r="8" fill="#059669"/><text x="67" y="43" font-size="11" font-weight="800">大石公園</text><text x="74" y="93" font-size="9" fill="#64748b" font-weight="700">河口湖北岸</text></g>
-              <g><circle cx="124" cy="76" r="8" fill="#059669"/><text x="108" y="74" font-size="11" font-weight="800">河口湖</text></g>
-              <g><circle cx="240" cy="84" r="8" fill="#059669"/><text x="225" y="72" font-size="11" font-weight="800">忍野八海</text></g>
-              <g><circle cx="225" cy="138" r="8" fill="#059669"/><text x="211" y="160" font-size="11" font-weight="800">山中湖</text></g>
+              <g data-stop="大石公園"><circle cx="86" cy="55" r="8" fill="#059669"/><text x="67" y="43" font-size="11" font-weight="800">大石公園</text><text x="74" y="93" font-size="9" fill="#64748b" font-weight="700">河口湖北岸</text></g>
+              <g data-stop="河口湖"><circle cx="124" cy="76" r="8" fill="#059669"/><text x="108" y="74" font-size="11" font-weight="800">河口湖</text></g>
+              <g data-stop="忍野八海"><circle cx="240" cy="84" r="8" fill="#059669"/><text x="225" y="72" font-size="11" font-weight="800">忍野八海</text></g>
+              <g data-stop="山中湖"><circle cx="225" cy="138" r="8" fill="#059669"/><text x="211" y="160" font-size="11" font-weight="800">山中湖</text></g>
               <text x="132" y="194" font-size="12" font-weight="900">富士山</text>
             </g>
           </svg>`
@@ -675,10 +701,10 @@
             <path d="M76 155 C104 125, 130 107, 165 99" stroke="#94a3b8" stroke-width="4" stroke-dasharray="7 5" fill="none"/>
             <path d="M165 99 C184 96, 202 104, 214 116" stroke="#94a3b8" stroke-width="4" stroke-dasharray="7 5" fill="none"/>
             <g fill="#0f172a" font-family="Inter, Noto Sans TC, sans-serif">
-              <g><circle cx="88" cy="54" r="8" fill="#ea580c"/><text x="58" y="41" font-size="11" font-weight="800">黑姬高原雪上公園</text></g>
-              <g><circle cx="176" cy="72" r="8" fill="#ea580c"/><text x="161" y="58" font-size="11" font-weight="800">戶隱神社</text></g>
-              <g><circle cx="155" cy="142" r="8" fill="#ea580c"/><text x="135" y="163" font-size="11" font-weight="800">權堂商店街</text></g>
-              <g><circle cx="208" cy="124" r="8" fill="#ea580c"/><text x="197" y="141" font-size="11" font-weight="800">善光寺</text></g>
+              <g data-stop="黑姬高原"><circle cx="88" cy="54" r="8" fill="#ea580c"/><text x="58" y="41" font-size="11" font-weight="800">黑姬高原雪上公園</text></g>
+              <g data-stop="戶隱神社"><circle cx="176" cy="72" r="8" fill="#ea580c"/><text x="161" y="58" font-size="11" font-weight="800">戶隱神社</text></g>
+              <g data-stop="權堂商店街"><circle cx="155" cy="142" r="8" fill="#ea580c"/><text x="135" y="163" font-size="11" font-weight="800">權堂商店街</text></g>
+              <g data-stop="善光寺"><circle cx="208" cy="124" r="8" fill="#ea580c"/><text x="197" y="141" font-size="11" font-weight="800">善光寺</text></g>
               <text x="219" y="183" font-size="10" fill="#64748b" font-weight="700">長野市區</text>
             </g>
           </svg>`
@@ -715,10 +741,10 @@
             <path d="M132 124 C160 107, 191 91, 241 57" stroke="#94a3b8" stroke-width="5" stroke-linecap="round" fill="none"/>
             <path d="M132 124 C147 133, 159 143, 171 155" stroke="#94a3b8" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.8"/>
             <g fill="#0f172a" font-family="Inter, Noto Sans TC, sans-serif">
-              <g><circle cx="86" cy="100" r="8" fill="#9333ea"/><text x="67" y="87" font-size="11" font-weight="800">港未來</text></g>
-              <g><circle cx="126" cy="122" r="8" fill="#9333ea"/><text x="111" y="140" font-size="11" font-weight="800">馬車道</text></g>
-              <g><circle cx="164" cy="154" r="8" fill="#9333ea"/><text x="138" y="174" font-size="11" font-weight="800">橫濱商店街</text></g>
-              <g><circle cx="239" cy="61" r="8" fill="#9333ea"/><text x="223" y="48" font-size="11" font-weight="800">戶越銀座</text></g>
+              <g data-stop="港未來"><circle cx="86" cy="100" r="8" fill="#9333ea"/><text x="67" y="87" font-size="11" font-weight="800">港未來</text></g>
+              <g data-stop="馬車道"><circle cx="126" cy="122" r="8" fill="#9333ea"/><text x="111" y="140" font-size="11" font-weight="800">馬車道</text></g>
+              <g data-stop="橫濱商店街"><circle cx="164" cy="154" r="8" fill="#9333ea"/><text x="138" y="174" font-size="11" font-weight="800">橫濱商店街</text></g>
+              <g data-stop="戶越銀座"><circle cx="239" cy="61" r="8" fill="#9333ea"/><text x="223" y="48" font-size="11" font-weight="800">戶越銀座</text></g>
               <text x="235" y="78" font-size="9" fill="#64748b" font-weight="700">東京・品川方向</text>
               <text x="32" y="194" font-size="10" fill="#64748b" font-weight="700">東京灣</text>
             </g>
@@ -753,6 +779,120 @@
       expanded.classList.toggle('is-open', regionMapOpen);
       chevron.style.transform = regionMapOpen ? 'rotate(180deg)' : 'rotate(0deg)';
       btn.setAttribute('aria-expanded', regionMapOpen ? 'true' : 'false');
+    }
+
+
+    let selectedMapStop = '';
+    let selectedMapMatchedIndex = -1;
+
+    const stopAliases = {
+      '藤澤': ['藤澤','藤沢'],
+      '江之島': ['江之島','江ノ島','江の島'],
+      '長谷': ['長谷','長谷寺'],
+      '鎌倉': ['鎌倉','鎌倉站','鎌倉駅'],
+      '大石公園': ['大石公園','大石'],
+      '河口湖': ['河口湖'],
+      '忍野八海': ['忍野八海','忍野'],
+      '山中湖': ['山中湖'],
+      '黑姬高原': ['黑姬','黒姫','黑姬高原','黒姫高原'],
+      '戶隱神社': ['戶隱','戸隠','戶隱神社','戸隠神社'],
+      '權堂商店街': ['權堂','権堂','權堂商店街','権堂商店街'],
+      '善光寺': ['善光寺'],
+      '港未來': ['港未來','みなとみらい','Minato Mirai'],
+      '馬車道': ['馬車道'],
+      '橫濱商店街': ['橫濱商店街','横浜商店街','伊勢佐木','橫濱橋','横浜橋'],
+      '戶越銀座': ['戶越銀座','戸越銀座']
+    };
+
+    function normalizeSearchText(value) {
+      return (value || '').toString().toLowerCase().replace(/\s+/g, '');
+    }
+
+    function itemMatchesStop(item, stopName) {
+      const text = normalizeSearchText(`${item.title || ''} ${item.location || ''} ${item.notes || ''}`);
+      const aliases = stopAliases[stopName] || [stopName];
+      return aliases.some(alias => text.includes(normalizeSearchText(alias)));
+    }
+
+    function getTodayStopMatches(info) {
+      const dayItems = allData.filter(item => item.day === currentDay);
+      const names = info.stops.map(stop => typeof stop === 'string' ? stop : stop.name);
+      const matches = {};
+      names.forEach(name => {
+        const index = dayItems.findIndex(item => itemMatchesStop(item, name));
+        matches[name] = { matched: index >= 0, item: index >= 0 ? dayItems[index] : null };
+      });
+      return matches;
+    }
+
+    function applyMapInteractivity(info) {
+      const matches = getTodayStopMatches(info);
+      const svgRoot = document.getElementById('region-map-svg');
+      if (!svgRoot) return matches;
+      svgRoot.querySelectorAll('[data-stop]').forEach(node => {
+        const name = node.getAttribute('data-stop');
+        const isToday = !!matches[name]?.matched;
+        node.classList.toggle('map-stop-today', isToday);
+        node.classList.toggle('map-stop-dim', !isToday);
+        node.classList.toggle('map-stop-selected', selectedMapStop === name);
+        node.setAttribute('role', 'button');
+        node.setAttribute('tabindex', '0');
+        node.setAttribute('aria-label', `${name}${isToday ? '，今天有安排' : '，區域參考點'}`);
+      });
+      return matches;
+    }
+
+    function selectMapStop(stopName) {
+      selectedMapStop = stopName;
+      const info = regionMapInfo[getRegionKey(currentDay)];
+      const matches = applyMapInteractivity(info);
+      const match = matches[stopName];
+      selectedMapMatchedIndex = -1;
+
+      const status = document.getElementById('region-map-selected-info');
+      const jump = document.getElementById('region-map-jump-btn');
+      if (match?.matched && match.item) {
+        const dayItems = allData.filter(item => item.day === currentDay);
+        selectedMapMatchedIndex = dayItems.indexOf(match.item);
+        if (status) status.innerText = `${stopName}・今天 ${match.item.time || ''} ${match.item.title || ''}`;
+        if (jump) jump.classList.remove('hidden');
+      } else {
+        if (status) status.innerText = `${stopName}・今天沒有偵測到相符行程，作為區域位置參考`;
+        if (jump) jump.classList.add('hidden');
+      }
+
+      document.querySelectorAll('.interactive-stop-chip').forEach(btn => {
+        btn.classList.toggle('ring-2', btn.dataset.stop === stopName);
+        btn.classList.toggle('ring-offset-1', btn.dataset.stop === stopName);
+      });
+    }
+
+    function jumpToSelectedStop() {
+      if (selectedMapMatchedIndex < 0) return;
+      const cards = [...document.querySelectorAll('[data-itinerary-index]')];
+      cards.forEach(card => card.classList.remove('itinerary-focus'));
+      const target = cards.find(card => Number(card.dataset.itineraryIndex) === selectedMapMatchedIndex);
+      if (!target) return;
+      target.classList.add('itinerary-focus');
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => target.classList.remove('itinerary-focus'), 2600);
+    }
+
+    function bindSvgMapEvents() {
+      const svgRoot = document.getElementById('region-map-svg');
+      if (!svgRoot || svgRoot.dataset.bound === '1') return;
+      svgRoot.dataset.bound = '1';
+      svgRoot.addEventListener('click', (event) => {
+        const node = event.target.closest('[data-stop]');
+        if (node) selectMapStop(node.getAttribute('data-stop'));
+      });
+      svgRoot.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        const node = event.target.closest('[data-stop]');
+        if (!node) return;
+        event.preventDefault();
+        selectMapStop(node.getAttribute('data-stop'));
+      });
     }
 
     function renderTripRegionProgress(activeKey) {
@@ -796,16 +936,28 @@
       if (el('region-preview-svg')) el('region-preview-svg').innerHTML = info.previewSvg;
       if (el('region-map-svg')) el('region-map-svg').innerHTML = info.fullSvg;
 
+      selectedMapStop = '';
+      selectedMapMatchedIndex = -1;
       renderTripRegionProgress(key);
+      bindSvgMapEvents();
+      const matches = applyMapInteractivity(info);
+      const todayCount = Object.values(matches).filter(v => v.matched).length;
+      if (el('region-map-day-status')) el('region-map-day-status').innerText = `今日地圖・已自動標出 ${todayCount} 個行程地點`;
+      if (el('region-map-selected-info')) el('region-map-selected-info').innerText = todayCount ? '實心亮點＝今天行程；點景點可查看' : '目前沒有偵測到相符地標，仍可查看區域位置';
+      if (el('region-map-jump-btn')) el('region-map-jump-btn').classList.add('hidden');
 
       const stopList = el('region-map-stop-list');
       if (stopList) {
-        stopList.innerHTML = info.stops.map((stop) => `
-          <span class="shrink-0 text-[10px] font-bold px-2.5 py-1.5 rounded-full border"
-                style="background:${info.soft}; color:${info.accent}; border-color:${info.accent}33;">
-            <i class="fa-solid fa-location-dot mr-1"></i>${stop}
-          </span>
-        `).join('');
+        stopList.innerHTML = info.stops.map((stop) => {
+          const name = typeof stop === 'string' ? stop : stop.name;
+          const isToday = !!matches[name]?.matched;
+          return `
+          <button type="button" data-stop="${name}" onclick="selectMapStop('${name.replace(/'/g, "\'")}')"
+                  class="interactive-stop-chip shrink-0 text-[10px] font-bold px-2.5 py-2 rounded-full border ${isToday ? 'is-today' : 'is-dim'}"
+                  style="background:${info.soft}; color:${info.accent}; border-color:${info.accent}33;">
+            <i class="fa-solid ${isToday ? 'fa-circle-check' : 'fa-location-dot'} mr-1"></i>${name}
+          </button>`;
+        }).join('');
       }
     }
 
@@ -981,10 +1133,10 @@ async function fetchSheetData() {
         return;
       }
 
-      container.innerHTML = filteredData.map((item) => {
+      container.innerHTML = filteredData.map((item, itemIndex) => {
         const catStyle = getCategoryStyle(item.category);
         return `
-          <div class="relative pl-10">
+          <div class="relative pl-10" data-itinerary-index="${itemIndex}" data-itinerary-search="${(item.title + ' ' + item.location).replace(/"/g, '&quot;')}">
             <div class="absolute left-2.5 top-5 w-3 h-3 rounded-full bg-blue-600 border-2 border-white shadow-md z-20"></div>
             <div class="light-card rounded-3xl overflow-hidden transition-all duration-300 hover:shadow-md p-4">
               ${item.image1 ? `
@@ -1023,6 +1175,8 @@ async function fetchSheetData() {
           </div>
         `;
       }).join('');
+      const info = regionMapInfo[getRegionKey(currentDay)];
+      if (info) applyMapInteractivity(info);
     }
 
     /* 編輯行程功能 */
