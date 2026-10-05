@@ -60,6 +60,129 @@
       border-color: transparent !important;
       box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
     }
+
+    /* ===== 區域位置簡圖卡片 ===== */
+    .region-map-card {
+      background: rgba(255,255,255,.96);
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 8px 28px -12px rgba(15,23,42,.18);
+    }
+
+    .region-map-preview,
+    .region-map-canvas {
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 24% 28%, rgba(255,255,255,.95) 0 6%, transparent 7%),
+        linear-gradient(145deg, #e0f2fe 0%, #ecfdf5 52%, #fef3c7 100%);
+    }
+
+    .region-map-preview::before,
+    .region-map-canvas::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: .34;
+      background-image:
+        linear-gradient(25deg, transparent 45%, rgba(148,163,184,.8) 46%, rgba(148,163,184,.8) 48%, transparent 49%),
+        linear-gradient(-22deg, transparent 54%, rgba(148,163,184,.65) 55%, rgba(148,163,184,.65) 57%, transparent 58%);
+      background-size: 120px 90px, 160px 110px;
+    }
+
+    .region-map-preview::after,
+    .region-map-canvas::after {
+      content: '';
+      position: absolute;
+      width: 48%;
+      height: 30%;
+      left: 17%;
+      top: 42%;
+      border-radius: 55% 45% 60% 40%;
+      background: rgba(56,189,248,.55);
+      box-shadow: 56px 22px 0 -10px rgba(56,189,248,.33);
+      transform: rotate(-7deg);
+    }
+
+    .mini-pin,
+    .map-pin {
+      position: absolute;
+      z-index: 5;
+      transform: translate(-50%, -100%);
+      border-radius: 9999px 9999px 9999px 0;
+      transform-origin: 50% 100%;
+      rotate: -45deg;
+      box-shadow: 0 3px 8px rgba(15,23,42,.18);
+    }
+
+    .mini-pin {
+      width: 14px;
+      height: 14px;
+      border: 2px solid white;
+    }
+
+    .map-pin {
+      width: 24px;
+      height: 24px;
+      border: 3px solid white;
+    }
+
+    .mini-pin::after,
+    .map-pin::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 4px;
+      height: 4px;
+      background: white;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .map-label {
+      position: absolute;
+      z-index: 6;
+      transform: translate(-50%, 0);
+      white-space: nowrap;
+      padding: 3px 7px;
+      border-radius: 9999px;
+      background: rgba(255,255,255,.90);
+      border: 1px solid rgba(226,232,240,.95);
+      color: #334155;
+      font-size: 9px;
+      font-weight: 800;
+      box-shadow: 0 2px 8px rgba(15,23,42,.08);
+      backdrop-filter: blur(6px);
+    }
+
+    .trip-progress-line {
+      position: absolute;
+      top: 17px;
+      left: 12.5%;
+      right: 12.5%;
+      height: 2px;
+      background-image: linear-gradient(to right, #7dd3fc 45%, transparent 45%);
+      background-size: 9px 2px;
+      background-repeat: repeat-x;
+      opacity: .85;
+    }
+
+    .region-expand {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows .32s ease, opacity .25s ease, margin-top .32s ease;
+      opacity: 0;
+      margin-top: 0;
+    }
+
+    .region-expand > div { overflow: hidden; }
+
+    .region-expand.is-open {
+      grid-template-rows: 1fr;
+      opacity: 1;
+      margin-top: 14px;
+    }
+
   </style>
 </head>
 <body class="min-h-screen pb-24 selection:bg-blue-500 selection:text-white">
@@ -120,6 +243,74 @@
         <div class="text-right">
           <div class="text-[10px] text-slate-300">來到了</div>
           <div id="hero-days" class="text-xs font-bold text-amber-300">D1 ~ D4</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 今天在哪裡？區域位置簡圖 -->
+  <section class="max-w-md mx-auto px-4 mt-4">
+    <div class="region-map-card rounded-3xl p-4">
+      <button type="button" onclick="toggleRegionMap()" class="w-full text-left active:scale-[0.995] transition" aria-controls="region-map-expanded" aria-expanded="false" id="region-map-toggle">
+        <div class="flex gap-3 items-stretch">
+          <div id="region-map-preview" class="region-map-preview relative w-[38%] min-h-[104px] rounded-2xl border border-slate-200 shrink-0">
+            <div id="region-preview-badge" class="absolute left-2 top-2 z-10 text-[9px] font-black px-2 py-1 rounded-full bg-white/90 backdrop-blur border border-white/80 text-slate-700 shadow-sm">湘南</div>
+            <div id="region-preview-pins"></div>
+          </div>
+
+          <div class="min-w-0 flex-1 py-0.5">
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <div class="flex items-center gap-1.5 text-[11px] font-black text-emerald-600">
+                  <i class="fa-solid fa-location-dot"></i>
+                  <span>今天在哪裡？</span>
+                </div>
+                <div id="region-map-title" class="text-base font-black text-slate-900 mt-1 leading-tight">藤澤・江之島・鎌倉</div>
+              </div>
+              <span id="region-map-chevron" class="w-8 h-8 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-500 shadow-sm shrink-0 transition-transform duration-300">
+                <i class="fa-solid fa-chevron-down text-xs"></i>
+              </span>
+            </div>
+
+            <div class="mt-2 flex items-center gap-2 flex-wrap">
+              <span id="region-map-days" class="text-[10px] font-black px-2.5 py-1 rounded-full bg-sky-50 text-sky-700 border border-sky-200">D1 - D4</span>
+              <span id="region-map-short" class="text-[10px] font-bold text-slate-400">湘南海岸</span>
+            </div>
+
+            <p id="region-map-description" class="text-[11px] text-slate-500 mt-2 leading-relaxed line-clamp-2">藤澤、江之島與鎌倉古都散策，沿著江之電欣賞湘南海岸。</p>
+          </div>
+        </div>
+      </button>
+
+      <!-- 16 日四區旅程軌跡 -->
+      <div class="relative mt-4 pt-1">
+        <div class="trip-progress-line"></div>
+        <div id="trip-region-progress" class="relative z-10 grid grid-cols-4 gap-1"></div>
+      </div>
+
+      <!-- 點擊後展開的區域簡圖 -->
+      <div id="region-map-expanded" class="region-expand">
+        <div>
+          <div class="pt-3 border-t border-slate-100">
+            <div class="flex items-center justify-between mb-2.5">
+              <div>
+                <div class="text-[10px] tracking-[0.18em] font-black text-slate-400">AREA MAP</div>
+                <div id="region-map-subtitle" class="text-xs font-extrabold text-slate-700 mt-0.5">景點相對位置簡圖</div>
+              </div>
+              <span class="text-[9px] text-slate-400 font-medium">示意位置・導航請點行程地點</span>
+            </div>
+
+            <div id="region-map-canvas" class="region-map-canvas h-56 rounded-2xl border border-slate-200">
+              <div id="region-map-canvas-content" class="absolute inset-0 z-10"></div>
+              <div class="absolute right-3 top-3 z-20 flex flex-col items-center text-slate-500">
+                <span class="text-[9px] font-black">N</span>
+                <i class="fa-solid fa-location-arrow text-[11px] mt-0.5"></i>
+              </div>
+              <div id="region-map-landmark" class="absolute left-4 bottom-3 z-20 px-2.5 py-1.5 rounded-xl bg-white/90 backdrop-blur border border-white/80 shadow-sm text-[10px] font-black text-slate-700"></div>
+            </div>
+
+            <div id="region-map-stop-list" class="flex gap-2 overflow-x-auto no-scrollbar mt-3 pb-1"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -267,7 +458,7 @@
             </div>
           </div>
 
-          <button id="btn-save-expense" onclick="()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2 rounded-xl transition shadow-sm active:scale-[0.98]">
+          <button id="btn-save-expense" onclick="addExpenseRecord()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2 rounded-xl transition shadow-sm active:scale-[0.98]">
             同步寫入雲端試算表
           </button>
         </div>
@@ -338,6 +529,168 @@
         img: 'https://static.gltjp.com/glt/data/article/21000/20427/20230919_135547_2364c1f3_w1920.webp'
       }
     };
+
+
+
+    // 區域位置簡圖資料：只做「相對位置」視覺，不取代 Google Maps 導航
+    const regionMapInfo = {
+      fujisawa: {
+        badge: '湘南',
+        title: '藤澤・江之島・鎌倉',
+        days: 'D1 - D4',
+        short: '湘南海岸',
+        description: '藤澤、江之島與鎌倉古都散策，沿著江之電欣賞湘南海岸。',
+        accent: '#0284c7',
+        soft: '#e0f2fe',
+        landmark: '🌊 湘南海岸・江之電',
+        stops: [
+          { name: '藤澤', x: 20, y: 32 },
+          { name: '江之島', x: 39, y: 66 },
+          { name: '鎌倉', x: 72, y: 43 },
+          { name: '長谷', x: 60, y: 66 }
+        ]
+      },
+      fuji: {
+        badge: '富士五湖',
+        title: '富士山・富士五湖',
+        days: 'D5 - D9',
+        short: '河口湖・山中湖',
+        description: '河口湖、山中湖、忍野八海與大石公園，欣賞富士山與湖泊交織的冬日絕景。',
+        accent: '#059669',
+        soft: '#dcfce7',
+        landmark: '🗻 富士山・富士五湖',
+        stops: [
+          { name: '大石公園', x: 28, y: 24 },
+          { name: '河口湖', x: 45, y: 47 },
+          { name: '忍野八海', x: 78, y: 41 },
+          { name: '山中湖', x: 68, y: 70 }
+        ]
+      },
+      nagano: {
+        badge: '長野',
+        title: '長野・黑姬・戶隱',
+        days: 'D10 - D12',
+        short: '雪國・古社',
+        description: '黑姬高原玩雪，再前往戶隱巨木參道、善光寺與權堂商店街。',
+        accent: '#ea580c',
+        soft: '#ffedd5',
+        landmark: '🌲 戶隱杉並木・雪國長野',
+        stops: [
+          { name: '黑姬高原', x: 32, y: 24 },
+          { name: '戶隱神社', x: 55, y: 42 },
+          { name: '善光寺', x: 69, y: 68 },
+          { name: '權堂', x: 48, y: 75 }
+        ]
+      },
+      yokohama: {
+        badge: '港灣',
+        title: '橫濱・品川',
+        days: 'D13 - D16',
+        short: '港未來・東京',
+        description: '橫濱港未來、馬車道與商店街散策，最後移動至品川與戶越銀座。',
+        accent: '#9333ea',
+        soft: '#f3e8ff',
+        landmark: '🏙️ 橫濱港灣・東京街區',
+        stops: [
+          { name: '港未來', x: 28, y: 36 },
+          { name: '馬車道', x: 44, y: 54 },
+          { name: '橫濱商店街', x: 61, y: 69 },
+          { name: '戶越銀座', x: 79, y: 30 }
+        ]
+      }
+    };
+
+    const tripRegions = [
+      { key: 'fujisawa', label: '湘南地區', days: 'D1 - D4', icon: 'fa-water', color: '#0284c7', soft: '#e0f2fe' },
+      { key: 'fuji', label: '富士五湖', days: 'D5 - D9', icon: 'fa-mountain', color: '#059669', soft: '#dcfce7' },
+      { key: 'nagano', label: '長野地區', days: 'D10 - D12', icon: 'fa-tree', color: '#ea580c', soft: '#ffedd5' },
+      { key: 'yokohama', label: '橫濱・品川', days: 'D13 - D16', icon: 'fa-city', color: '#9333ea', soft: '#f3e8ff' }
+    ];
+
+    let regionMapOpen = false;
+
+    function getRegionKey(dayStr) {
+      const dayNum = parseInt((dayStr || '').replace(/[^0-9]/g, '')) || 1;
+      if (dayNum <= 4) return 'fujisawa';
+      if (dayNum <= 9) return 'fuji';
+      if (dayNum <= 12) return 'nagano';
+      return 'yokohama';
+    }
+
+    function toggleRegionMap() {
+      regionMapOpen = !regionMapOpen;
+      const expanded = document.getElementById('region-map-expanded');
+      const chevron = document.getElementById('region-map-chevron');
+      const btn = document.getElementById('region-map-toggle');
+      if (!expanded || !chevron || !btn) return;
+
+      expanded.classList.toggle('is-open', regionMapOpen);
+      chevron.style.transform = regionMapOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+      btn.setAttribute('aria-expanded', regionMapOpen ? 'true' : 'false');
+    }
+
+    function renderMapPins(targetId, info, preview = false) {
+      const target = document.getElementById(targetId);
+      if (!target) return;
+      target.innerHTML = info.stops.map((stop, idx) => `
+        <span class="${preview ? 'mini-pin' : 'map-pin'}" style="left:${stop.x}%; top:${stop.y}%; background:${info.accent};"></span>
+        ${preview ? '' : `<span class="map-label" style="left:${stop.x}%; top:calc(${stop.y}% + 8px);">${stop.name}</span>`}
+      `).join('');
+    }
+
+    function renderTripRegionProgress(activeKey) {
+      const container = document.getElementById('trip-region-progress');
+      if (!container) return;
+      container.innerHTML = tripRegions.map(r => {
+        const active = r.key === activeKey;
+        return `
+          <div class="text-center min-w-0">
+            <div class="mx-auto w-9 h-9 rounded-full flex items-center justify-center border-2 border-white shadow-sm transition-all ${active ? 'scale-110 ring-2 ring-offset-2' : ''}"
+                 style="background:${active ? r.color : r.soft}; color:${active ? '#fff' : r.color}; ${active ? `--tw-ring-color:${r.color};` : ''}">
+              <i class="fa-solid ${r.icon} text-[11px]"></i>
+            </div>
+            <div class="mt-1.5 text-[9px] font-black truncate" style="color:${active ? r.color : '#64748b'}">${r.label}</div>
+            <div class="text-[8px] font-bold text-slate-400">${r.days}</div>
+          </div>`;
+      }).join('');
+    }
+
+    function updateRegionMap(dayStr) {
+      const key = getRegionKey(dayStr);
+      const info = regionMapInfo[key];
+      if (!info) return;
+
+      const el = id => document.getElementById(id);
+      if (el('region-preview-badge')) el('region-preview-badge').innerText = info.badge;
+      if (el('region-map-title')) el('region-map-title').innerText = info.title;
+      if (el('region-map-days')) {
+        el('region-map-days').innerText = info.days;
+        el('region-map-days').style.background = info.soft;
+        el('region-map-days').style.color = info.accent;
+        el('region-map-days').style.borderColor = info.accent + '33';
+      }
+      if (el('region-map-short')) {
+        el('region-map-short').innerText = info.short;
+        el('region-map-short').style.color = info.accent;
+      }
+      if (el('region-map-description')) el('region-map-description').innerText = info.description;
+      if (el('region-map-landmark')) el('region-map-landmark').innerText = info.landmark;
+      if (el('region-map-subtitle')) el('region-map-subtitle').innerText = `${info.title}・景點相對位置`;
+
+      renderMapPins('region-preview-pins', info, true);
+      renderMapPins('region-map-canvas-content', info, false);
+      renderTripRegionProgress(key);
+
+      const stopList = el('region-map-stop-list');
+      if (stopList) {
+        stopList.innerHTML = info.stops.map((stop, idx) => `
+          <span class="shrink-0 text-[10px] font-bold px-2.5 py-1.5 rounded-full border"
+                style="background:${info.soft}; color:${info.accent}; border-color:${info.accent}33;">
+            <i class="fa-solid fa-location-dot mr-1"></i>${stop.name}
+          </span>
+        `).join('');
+      }
+    }
 
     function getCategoryStyle(category) {
       switch(category) {
@@ -457,6 +810,7 @@ async function fetchSheetData() {
       document.getElementById('hero-tag').innerHTML = target.tag;
       document.getElementById('hero-title').innerText = target.title;
       document.getElementById('hero-days').innerText = target.days;
+      updateRegionMap(dayStr);
     }
 
  function renderTabs() {
