@@ -199,6 +199,180 @@
     #region-map-svg .map-stop-today { transform-box: fill-box; transform-origin: center; animation: mapPulse 1.8s ease-in-out infinite; }
     @media (prefers-reduced-motion: reduce) { #region-map-svg .map-stop-today { animation:none; } }
 
+
+    /* ===== V3 插畫底圖 + HTML/SVG 互動圖層 ===== */
+    .region-map-preview,
+    .region-map-canvas {
+      background: #eef2f7;
+      isolation: isolate;
+    }
+    .region-map-preview::before,
+    .region-map-preview::after,
+    .region-map-canvas::before,
+    .region-map-canvas::after { display: none !important; }
+
+    .region-map-canvas {
+      height: auto !important;
+      aspect-ratio: 3 / 2;
+    }
+
+    .illustrated-map-stage {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      border-radius: inherit;
+      background: #e2e8f0;
+    }
+
+    .illustrated-map-image {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
+    .illustrated-map-stage::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background: linear-gradient(to bottom, rgba(255,255,255,.02), rgba(15,23,42,.035));
+    }
+
+    .map-route-layer {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 3;
+      pointer-events: none;
+      overflow: visible;
+    }
+
+    .map-route-line {
+      fill: none;
+      stroke: rgba(255,255,255,.98);
+      stroke-width: 7;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      vector-effect: non-scaling-stroke;
+      filter: drop-shadow(0 2px 2px rgba(15,23,42,.22));
+    }
+
+    .map-route-line-accent {
+      fill: none;
+      stroke: var(--route-color, #059669);
+      stroke-width: 3.2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 8 6;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .illustrated-map-stop {
+      position: absolute;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transform: translate(-50%, -50%);
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: #0f172a;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: opacity .2s ease, filter .2s ease, transform .16s ease;
+    }
+
+    .illustrated-map-stop:focus-visible {
+      outline: 3px solid rgba(37,99,235,.36);
+      outline-offset: 4px;
+      border-radius: 999px;
+    }
+
+    .poi-pin {
+      position: relative;
+      width: 29px;
+      height: 29px;
+      border-radius: 999px 999px 999px 0;
+      transform: rotate(-45deg);
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      background: var(--poi-color, #059669);
+      border: 3px solid #fff;
+      box-shadow: 0 3px 9px rgba(15,23,42,.26);
+    }
+
+    .poi-pin > i {
+      transform: rotate(45deg);
+      color: #fff;
+      font-size: 9px;
+    }
+
+    .poi-label {
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.94);
+      border: 1px solid rgba(255,255,255,.96);
+      box-shadow: 0 2px 8px rgba(15,23,42,.14);
+      backdrop-filter: blur(5px);
+      font-size: 10px;
+      line-height: 1;
+      font-weight: 900;
+    }
+
+    .illustrated-map-stop.map-stop-dim { opacity: .52; }
+    .illustrated-map-stop.map-stop-today { opacity: 1; filter: drop-shadow(0 2px 4px rgba(15,23,42,.12)); }
+    .illustrated-map-stop.map-stop-selected { transform: translate(-50%, -50%) scale(1.08); z-index: 8; }
+    .illustrated-map-stop.map-stop-selected .poi-label { box-shadow: 0 0 0 2px #fff, 0 0 0 5px var(--poi-color); }
+
+    .illustrated-map-stop[data-order]::before {
+      content: attr(data-order);
+      position: absolute;
+      z-index: 9;
+      left: -7px;
+      top: -9px;
+      width: 18px;
+      height: 18px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: #0f172a;
+      color: #fff;
+      border: 2px solid #fff;
+      box-shadow: 0 2px 5px rgba(15,23,42,.25);
+      font-size: 9px;
+      font-weight: 900;
+    }
+
+    .preview-poi {
+      position: absolute;
+      z-index: 4;
+      width: 11px;
+      height: 11px;
+      border-radius: 999px;
+      transform: translate(-50%, -50%);
+      background: var(--poi-color, #059669);
+      border: 2px solid #fff;
+      box-shadow: 0 2px 5px rgba(15,23,42,.25);
+    }
+
+    @keyframes poiPulse {
+      0%,100% { box-shadow: 0 3px 9px rgba(15,23,42,.26), 0 0 0 0 color-mix(in srgb, var(--poi-color) 28%, transparent); }
+      50% { box-shadow: 0 3px 9px rgba(15,23,42,.26), 0 0 0 8px color-mix(in srgb, var(--poi-color) 0%, transparent); }
+    }
+    .illustrated-map-stop.map-stop-today .poi-pin { animation: poiPulse 1.8s ease-in-out infinite; }
+    @media (prefers-reduced-motion: reduce) {
+      .illustrated-map-stop.map-stop-today .poi-pin { animation: none; }
+    }
+
   </style>
 </head>
 <body class="min-h-screen pb-24 selection:bg-blue-500 selection:text-white">
@@ -313,7 +487,7 @@
                 <div class="text-[10px] tracking-[0.18em] font-black text-slate-400">AREA MAP</div>
                 <div id="region-map-subtitle" class="text-xs font-extrabold text-slate-700 mt-0.5">景點相對位置簡圖</div>
               </div>
-              <span class="text-[9px] text-slate-400 font-medium">示意位置・導航請點行程地點</span>
+              <span class="text-[9px] text-slate-400 font-medium">插畫底圖・定位點與今日路線可互動</span>
             </div>
 
             <div id="region-map-canvas" class="region-map-canvas h-56 rounded-2xl border border-slate-200">
@@ -559,196 +733,81 @@
 
 
 
-    // 區域位置簡圖資料：改為更接近真實方位的 SVG 小地圖
+    // V3：四張俯視插畫底圖 + HTML/SVG 互動圖層
+    // 圖片請放在 GitHub 專案：assets/maps/ 資料夾。
+    // 所有底圖建議統一 3:2（例如 1536 × 1024），而且「不要把地標文字與定位點畫死在圖片內」。
     const regionMapInfo = {
       fujisawa: {
         badge: '湘南',
         title: '藤澤・江之島・鎌倉',
         days: 'D1 - D4',
         short: '湘南海岸',
-        description: '藤澤在內陸，江之島位於海岸偏西南，長谷與鎌倉沿著海岸往東分布。',
+        description: '藤澤、江之島與鎌倉沿著湘南海岸展開，江之電串起海岸與古都景點。',
         accent: '#0284c7',
         soft: '#e0f2fe',
         landmark: '🌊 湘南海岸・江之電',
-        stops: ['藤澤', '江之島', '長谷', '鎌倉'],
-        previewSvg: `
-          <svg viewBox="0 0 180 118" class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-            <rect width="180" height="118" rx="18" fill="#eef7ff"/>
-            <path d="M0 78 C22 70, 38 74, 58 67 C84 58, 111 60, 180 44 L180 118 L0 118 Z" fill="#93c5fd"/>
-            <path d="M0 74 C18 66, 35 69, 53 63 C82 53, 113 56, 180 40" stroke="#ffffff" stroke-width="2.5" fill="none" opacity="0.9"/>
-            <path d="M18 35 C42 30, 67 33, 92 28 C110 25, 129 26, 151 24" stroke="#cbd5e1" stroke-width="5" stroke-linecap="round" fill="none" opacity="0.8"/>
-            <path d="M26 52 C56 50, 74 57, 92 64 C109 70, 126 71, 155 66" stroke="#f59e0b" stroke-width="3" stroke-dasharray="5 4" fill="none" opacity="0.9"/>
-            <circle cx="72" cy="86" r="8" fill="#fde68a" stroke="#f59e0b"/>
-            <circle cx="72" cy="86" r="4" fill="#f59e0b"/>
-            <g font-size="8.5" font-weight="800" fill="#0f172a" font-family="Inter, Noto Sans TC, sans-serif">
-              <circle cx="44" cy="45" r="4.5" fill="#0284c7"/><text x="35" y="35">藤澤</text>
-              <circle cx="70" cy="80" r="4.5" fill="#0284c7"/><text x="58" y="99">江之島</text>
-              <circle cx="111" cy="69" r="4.5" fill="#0284c7"/><text x="101" y="84">長谷</text>
-              <circle cx="142" cy="58" r="4.5" fill="#0284c7"/><text x="132" y="47">鎌倉</text>
-            </g>
-          </svg>`,
-        fullSvg: `
-          <svg viewBox="0 0 320 220" class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="fjSea" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stop-color="#7dd3fc"/>
-                <stop offset="100%" stop-color="#38bdf8"/>
-              </linearGradient>
-            </defs>
-            <rect width="320" height="220" rx="22" fill="#f8fbff"/>
-            <path d="M0 142 C42 122, 90 128, 135 115 C190 99, 245 98, 320 78 L320 220 L0 220 Z" fill="url(#fjSea)"/>
-            <path d="M0 138 C46 119, 90 124, 133 111 C190 94, 245 94, 320 73" stroke="#ffffff" stroke-width="3" fill="none" opacity="0.92"/>
-            <path d="M25 46 C76 32, 118 39, 161 34 C198 29, 239 31, 291 26" stroke="#cbd5e1" stroke-width="8" stroke-linecap="round" fill="none"/>
-            <path d="M30 86 C82 77, 122 87, 162 98 C196 107, 234 108, 288 97" stroke="#f59e0b" stroke-width="4" stroke-dasharray="7 5" fill="none"/>
-            <path d="M178 108 C191 95, 208 89, 228 88" stroke="#f59e0b" stroke-width="3" stroke-dasharray="6 5" fill="none" opacity="0.9"/>
-            <circle cx="105" cy="155" r="16" fill="#fde68a" stroke="#f59e0b" stroke-width="2"/>
-            <circle cx="105" cy="155" r="8" fill="#f59e0b"/>
-            <path d="M98 162 L116 149" stroke="#ffffff" stroke-width="2" opacity="0.85"/>
-            <g fill="#0f172a" font-family="Inter, Noto Sans TC, sans-serif">
-              <g>
-                <circle cx="86" cy="69" r="7" fill="#0284c7"/><text x="68" y="56" font-size="11" font-weight="800">藤澤</text>
-              </g>
-              <g data-stop="江之島">
-                <circle cx="107" cy="141" r="7" fill="#0284c7"/><text x="87" y="179" font-size="11" font-weight="800">江之島</text>
-              </g>
-              <g data-stop="長谷">
-                <circle cx="183" cy="110" r="7" fill="#0284c7"/><text x="170" y="127" font-size="11" font-weight="800">長谷</text>
-              </g>
-              <g data-stop="鎌倉">
-                <circle cx="233" cy="98" r="7" fill="#0284c7"/><text x="221" y="84" font-size="11" font-weight="800">鎌倉</text>
-              </g>
-            </g>
-            <g font-size="10" font-weight="700" fill="#475569" font-family="Inter, Noto Sans TC, sans-serif">
-              <text x="24" y="196">相模灣</text>
-              <text x="212" y="183">湘南海岸</text>
-              <text x="56" y="102">江之電沿線</text>
-            </g>
-          </svg>`
+        image: './assets/maps/map-shonan.webp',
+        imagePosition: 'center center',
+        stops: [
+          { name: '藤澤', x: 29, y: 25, icon: 'fa-train' },
+          { name: '江之島', x: 31, y: 72, icon: 'fa-water' },
+          { name: '長谷', x: 63, y: 62, icon: 'fa-torii-gate' },
+          { name: '鎌倉', x: 77, y: 43, icon: 'fa-torii-gate' }
+        ]
       },
       fuji: {
         badge: '富士五湖',
         title: '富士山・富士五湖',
         days: 'D5 - D9',
         short: '河口湖・山中湖',
-        description: '大石公園在河口湖北岸，忍野八海位於富士山東側，山中湖則再更偏東南。',
+        description: '河口湖、大石公園、忍野八海與山中湖環繞富士山，適合用俯視圖理解相對方位。',
         accent: '#059669',
         soft: '#dcfce7',
         landmark: '🗻 富士山・富士五湖',
-        stops: ['大石公園', '河口湖', '忍野八海', '山中湖'],
-        previewSvg: `
-          <svg viewBox="0 0 180 118" class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-            <rect width="180" height="118" rx="18" fill="#f3fff7"/>
-            <ellipse cx="68" cy="54" rx="34" ry="14" fill="#93c5fd"/>
-            <ellipse cx="130" cy="76" rx="25" ry="11" fill="#93c5fd"/>
-            <path d="M52 92 L83 58 L113 92 Z" fill="#6ee7b7"/>
-            <path d="M74 68 L83 58 L92 68 Z" fill="#ffffff"/>
-            <path d="M30 36 C48 28, 58 22, 72 18" stroke="#cbd5e1" stroke-width="4" stroke-linecap="round" fill="none"/>
-            <path d="M87 35 C102 30, 120 31, 138 38" stroke="#cbd5e1" stroke-width="4" stroke-linecap="round" fill="none"/>
-            <g font-size="8.5" font-weight="800" fill="#0f172a" font-family="Inter, Noto Sans TC, sans-serif">
-              <circle cx="53" cy="37" r="4.5" fill="#059669"/><text x="44" y="26">大石</text>
-              <circle cx="72" cy="53" r="4.5" fill="#059669"/><text x="58" y="72">河口湖</text>
-              <circle cx="136" cy="50" r="4.5" fill="#059669"/><text x="124" y="40">忍野</text>
-              <circle cx="126" cy="75" r="4.5" fill="#059669"/><text x="112" y="94">山中湖</text>
-            </g>
-          </svg>`,
-        fullSvg: `
-          <svg viewBox="0 0 320 220" class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-            <rect width="320" height="220" rx="22" fill="#f7fff9"/>
-            <ellipse cx="119" cy="76" rx="68" ry="26" fill="#7dd3fc" opacity="0.95"/>
-            <ellipse cx="226" cy="138" rx="54" ry="22" fill="#7dd3fc" opacity="0.95"/>
-            <path d="M80 178 L152 92 L226 178 Z" fill="#34d399"/>
-            <path d="M127 121 L152 92 L177 121 Z" fill="#ffffff"/>
-            <path d="M62 62 C89 44, 108 36, 128 36" stroke="#cbd5e1" stroke-width="6" stroke-linecap="round" fill="none"/>
-            <path d="M165 58 C188 48, 214 50, 244 65" stroke="#cbd5e1" stroke-width="6" stroke-linecap="round" fill="none"/>
-            <path d="M138 88 C171 90, 191 103, 204 118" stroke="#94a3b8" stroke-width="4" stroke-dasharray="7 5" fill="none"/>
-            <g fill="#0f172a" font-family="Inter, Noto Sans TC, sans-serif">
-              <g data-stop="大石公園"><circle cx="86" cy="55" r="8" fill="#059669"/><text x="67" y="43" font-size="11" font-weight="800">大石公園</text><text x="74" y="93" font-size="9" fill="#64748b" font-weight="700">河口湖北岸</text></g>
-              <g data-stop="河口湖"><circle cx="124" cy="76" r="8" fill="#059669"/><text x="108" y="74" font-size="11" font-weight="800">河口湖</text></g>
-              <g data-stop="忍野八海"><circle cx="240" cy="84" r="8" fill="#059669"/><text x="225" y="72" font-size="11" font-weight="800">忍野八海</text></g>
-              <g data-stop="山中湖"><circle cx="225" cy="138" r="8" fill="#059669"/><text x="211" y="160" font-size="11" font-weight="800">山中湖</text></g>
-              <text x="132" y="194" font-size="12" font-weight="900">富士山</text>
-            </g>
-          </svg>`
+        image: './assets/maps/map-fuji.webp',
+        imagePosition: 'center center',
+        stops: [
+          { name: '大石公園', x: 29, y: 22, icon: 'fa-camera' },
+          { name: '河口湖', x: 41, y: 43, icon: 'fa-water' },
+          { name: '忍野八海', x: 79, y: 40, icon: 'fa-droplet' },
+          { name: '山中湖', x: 70, y: 70, icon: 'fa-water' }
+        ]
       },
       nagano: {
         badge: '長野',
         title: '長野・黑姬・戶隱',
         days: 'D10 - D12',
         short: '雪國・古社',
-        description: '黑姬高原位於較北側，戶隱在長野市西北山區，權堂與善光寺則在長野市區周邊。',
+        description: '黑姬位於北側，戶隱在山區，善光寺與權堂則集中於長野市中心。',
         accent: '#ea580c',
         soft: '#ffedd5',
         landmark: '🌲 戶隱杉並木・雪國長野',
-        stops: ['黑姬高原', '戶隱神社', '權堂商店街', '善光寺'],
-        previewSvg: `
-          <svg viewBox="0 0 180 118" class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-            <rect width="180" height="118" rx="18" fill="#fff8f2"/>
-            <path d="M0 48 L20 33 L38 47 L56 26 L76 44 L96 28 L118 46 L138 34 L156 49 L180 40 L180 118 L0 118 Z" fill="#fed7aa"/>
-            <path d="M0 56 L18 41 L38 55 L58 34 L78 52 L98 36 L118 54 L138 42 L158 57 L180 48" stroke="#ffffff" stroke-width="2" fill="none" opacity="0.85"/>
-            <path d="M46 91 C62 72, 88 63, 118 59" stroke="#94a3b8" stroke-width="3" stroke-dasharray="5 4" fill="none"/>
-            <g font-size="8.3" font-weight="800" fill="#0f172a" font-family="Inter, Noto Sans TC, sans-serif">
-              <circle cx="48" cy="34" r="4.5" fill="#ea580c"/><text x="30" y="22">黑姬</text>
-              <circle cx="104" cy="42" r="4.5" fill="#ea580c"/><text x="92" y="31">戶隱</text>
-              <circle cx="92" cy="78" r="4.5" fill="#ea580c"/><text x="81" y="96">權堂</text>
-              <circle cx="119" cy="69" r="4.5" fill="#ea580c"/><text x="110" y="85">善光寺</text>
-            </g>
-          </svg>`,
-        fullSvg: `
-          <svg viewBox="0 0 320 220" class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-            <rect width="320" height="220" rx="22" fill="#fffaf5"/>
-            <path d="M0 82 L34 52 L68 80 L103 40 L138 78 L173 48 L210 84 L248 58 L286 85 L320 68 L320 220 L0 220 Z" fill="#fdba74" opacity="0.75"/>
-            <path d="M0 94 L34 63 L68 92 L103 52 L138 90 L173 60 L210 96 L248 70 L286 98 L320 82" stroke="#ffffff" stroke-width="3" fill="none" opacity="0.9"/>
-            <path d="M76 155 C104 125, 130 107, 165 99" stroke="#94a3b8" stroke-width="4" stroke-dasharray="7 5" fill="none"/>
-            <path d="M165 99 C184 96, 202 104, 214 116" stroke="#94a3b8" stroke-width="4" stroke-dasharray="7 5" fill="none"/>
-            <g fill="#0f172a" font-family="Inter, Noto Sans TC, sans-serif">
-              <g data-stop="黑姬高原"><circle cx="88" cy="54" r="8" fill="#ea580c"/><text x="58" y="41" font-size="11" font-weight="800">黑姬高原雪上公園</text></g>
-              <g data-stop="戶隱神社"><circle cx="176" cy="72" r="8" fill="#ea580c"/><text x="161" y="58" font-size="11" font-weight="800">戶隱神社</text></g>
-              <g data-stop="權堂商店街"><circle cx="155" cy="142" r="8" fill="#ea580c"/><text x="135" y="163" font-size="11" font-weight="800">權堂商店街</text></g>
-              <g data-stop="善光寺"><circle cx="208" cy="124" r="8" fill="#ea580c"/><text x="197" y="141" font-size="11" font-weight="800">善光寺</text></g>
-              <text x="219" y="183" font-size="10" fill="#64748b" font-weight="700">長野市區</text>
-            </g>
-          </svg>`
+        image: './assets/maps/map-nagano.webp',
+        imagePosition: 'center center',
+        stops: [
+          { name: '黑姬高原', x: 29, y: 22, icon: 'fa-snowflake' },
+          { name: '戶隱神社', x: 51, y: 43, icon: 'fa-torii-gate' },
+          { name: '善光寺', x: 70, y: 63, icon: 'fa-torii-gate' },
+          { name: '權堂商店街', x: 64, y: 76, icon: 'fa-store' }
+        ]
       },
       yokohama: {
         badge: '港灣',
         title: '橫濱・品川',
         days: 'D13 - D16',
         short: '港未來・東京',
-        description: '港未來與馬車道位於橫濱灣岸核心，橫濱商店街更往南側，戶越銀座則在東京品川方向。',
+        description: '港未來與馬車道位於橫濱港灣核心，最後沿東京灣方向前往品川與戶越銀座。',
         accent: '#9333ea',
         soft: '#f3e8ff',
         landmark: '🏙️ 橫濱港灣・東京街區',
-        stops: ['港未來', '馬車道', '橫濱商店街', '戶越銀座'],
-        previewSvg: `
-          <svg viewBox="0 0 180 118" class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-            <rect width="180" height="118" rx="18" fill="#fbf7ff"/>
-            <path d="M0 80 C20 72, 45 74, 66 67 C95 58, 126 58, 180 49 L180 118 L0 118 Z" fill="#bfdbfe"/>
-            <path d="M40 33 C60 38, 76 46, 89 58" stroke="#94a3b8" stroke-width="4" stroke-linecap="round" fill="none"/>
-            <path d="M91 57 C108 48, 128 39, 154 24" stroke="#94a3b8" stroke-width="4" stroke-linecap="round" fill="none"/>
-            <g font-size="8.3" font-weight="800" fill="#0f172a" font-family="Inter, Noto Sans TC, sans-serif">
-              <circle cx="52" cy="55" r="4.5" fill="#9333ea"/><text x="37" y="47">港未來</text>
-              <circle cx="77" cy="63" r="4.5" fill="#9333ea"/><text x="69" y="79">馬車道</text>
-              <circle cx="98" cy="79" r="4.5" fill="#9333ea"/><text x="84" y="98">橫濱</text>
-              <circle cx="146" cy="31" r="4.5" fill="#9333ea"/><text x="132" y="22">戶越</text>
-            </g>
-          </svg>`,
-        fullSvg: `
-          <svg viewBox="0 0 320 220" class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-            <rect width="320" height="220" rx="22" fill="#fcf9ff"/>
-            <path d="M0 150 C45 133, 88 136, 131 122 C180 106, 233 104, 320 88 L320 220 L0 220 Z" fill="#93c5fd" opacity="0.9"/>
-            <path d="M0 145 C46 129, 87 131, 131 118 C181 101, 233 100, 320 84" stroke="#ffffff" stroke-width="3" fill="none" opacity="0.92"/>
-            <path d="M74 84 C95 92, 117 108, 133 125" stroke="#94a3b8" stroke-width="5" stroke-linecap="round" fill="none"/>
-            <path d="M132 124 C160 107, 191 91, 241 57" stroke="#94a3b8" stroke-width="5" stroke-linecap="round" fill="none"/>
-            <path d="M132 124 C147 133, 159 143, 171 155" stroke="#94a3b8" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.8"/>
-            <g fill="#0f172a" font-family="Inter, Noto Sans TC, sans-serif">
-              <g data-stop="港未來"><circle cx="86" cy="100" r="8" fill="#9333ea"/><text x="67" y="87" font-size="11" font-weight="800">港未來</text></g>
-              <g data-stop="馬車道"><circle cx="126" cy="122" r="8" fill="#9333ea"/><text x="111" y="140" font-size="11" font-weight="800">馬車道</text></g>
-              <g data-stop="橫濱商店街"><circle cx="164" cy="154" r="8" fill="#9333ea"/><text x="138" y="174" font-size="11" font-weight="800">橫濱商店街</text></g>
-              <g data-stop="戶越銀座"><circle cx="239" cy="61" r="8" fill="#9333ea"/><text x="223" y="48" font-size="11" font-weight="800">戶越銀座</text></g>
-              <text x="235" y="78" font-size="9" fill="#64748b" font-weight="700">東京・品川方向</text>
-              <text x="32" y="194" font-size="10" fill="#64748b" font-weight="700">東京灣</text>
-            </g>
-          </svg>`
+        image: './assets/maps/map-yokohama.webp',
+        imagePosition: 'center center',
+        stops: [
+          { name: '港未來', x: 28, y: 41, icon: 'fa-city' },
+          { name: '馬車道', x: 41, y: 53, icon: 'fa-building' },
+          { name: '橫濱商店街', x: 49, y: 69, icon: 'fa-store' },
+          { name: '戶越銀座', x: 79, y: 25, icon: 'fa-store' }
+        ]
       }
     };
 
@@ -895,6 +954,79 @@
       });
     }
 
+
+    function renderIllustratedMap(targetId, info, preview = false) {
+      const target = document.getElementById(targetId);
+      if (!target) return;
+
+      const stops = info.stops || [];
+      if (preview) {
+        target.innerHTML = `
+          <div class="illustrated-map-stage">
+            <img class="illustrated-map-image" src="${info.image}" alt="${info.title} 區域插畫地圖"
+                 style="object-position:${info.imagePosition || 'center center'}"
+                 onerror="this.style.opacity='.18'; this.alt='地圖圖片尚未上傳';">
+            ${stops.map(stop => `
+              <span class="preview-poi" style="left:${stop.x}%;top:${stop.y}%;--poi-color:${info.accent};"></span>
+            `).join('')}
+          </div>`;
+        return;
+      }
+
+      target.innerHTML = `
+        <div class="illustrated-map-stage" style="--route-color:${info.accent}">
+          <img class="illustrated-map-image" src="${info.image}" alt="${info.title} 區域插畫地圖"
+               style="object-position:${info.imagePosition || 'center center'}"
+               onerror="this.style.opacity='.18'; this.alt='地圖圖片尚未上傳';">
+
+          <svg class="map-route-layer" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+            <polyline id="region-route-shadow" class="map-route-line" points=""></polyline>
+            <polyline id="region-route-line" class="map-route-line-accent" points=""></polyline>
+          </svg>
+
+          ${stops.map(stop => `
+            <button type="button"
+                    class="illustrated-map-stop"
+                    data-stop="${stop.name}"
+                    style="left:${stop.x}%;top:${stop.y}%;--poi-color:${info.accent};"
+                    aria-label="${stop.name}">
+              <span class="poi-pin"><i class="fa-solid ${stop.icon || 'fa-location-dot'}"></i></span>
+              <span class="poi-label">${stop.name}</span>
+            </button>
+          `).join('')}
+        </div>`;
+    }
+
+    function renderTodayRoute(info) {
+      const line = document.getElementById('region-route-line');
+      const shadow = document.getElementById('region-route-shadow');
+      const svgRoot = document.getElementById('region-map-svg');
+      if (!line || !shadow || !svgRoot) return [];
+
+      svgRoot.querySelectorAll('[data-stop]').forEach(node => node.removeAttribute('data-order'));
+
+      const dayItems = allData.filter(item => item.day === currentDay);
+      const orderedStops = [];
+
+      dayItems.forEach(item => {
+        const stop = info.stops.find(s => itemMatchesStop(item, s.name));
+        if (stop && !orderedStops.some(s => s.name === stop.name)) orderedStops.push(stop);
+      });
+
+      const points = orderedStops.map(stop => `${stop.x},${stop.y}`).join(' ');
+      line.setAttribute('points', points);
+      shadow.setAttribute('points', points);
+      line.style.display = orderedStops.length >= 2 ? '' : 'none';
+      shadow.style.display = orderedStops.length >= 2 ? '' : 'none';
+
+      orderedStops.forEach((stop, index) => {
+        const node = [...svgRoot.querySelectorAll('[data-stop]')].find(el => el.dataset.stop === stop.name);
+        if (node) node.setAttribute('data-order', String(index + 1));
+      });
+
+      return orderedStops;
+    }
+
     function renderTripRegionProgress(activeKey) {
       const container = document.getElementById('trip-region-progress');
       if (!container) return;
@@ -933,16 +1065,17 @@
       if (el('region-map-description')) el('region-map-description').innerText = info.description;
       if (el('region-map-landmark')) el('region-map-landmark').innerText = info.landmark;
       if (el('region-map-subtitle')) el('region-map-subtitle').innerText = `${info.title}・景點相對位置`;
-      if (el('region-preview-svg')) el('region-preview-svg').innerHTML = info.previewSvg;
-      if (el('region-map-svg')) el('region-map-svg').innerHTML = info.fullSvg;
+      renderIllustratedMap('region-preview-svg', info, true);
+      renderIllustratedMap('region-map-svg', info, false);
 
       selectedMapStop = '';
       selectedMapMatchedIndex = -1;
       renderTripRegionProgress(key);
       bindSvgMapEvents();
       const matches = applyMapInteractivity(info);
+      const routeStops = renderTodayRoute(info);
       const todayCount = Object.values(matches).filter(v => v.matched).length;
-      if (el('region-map-day-status')) el('region-map-day-status').innerText = `今日地圖・已自動標出 ${todayCount} 個行程地點`;
+      if (el('region-map-day-status')) el('region-map-day-status').innerText = `今日地圖・已標出 ${todayCount} 個地點${routeStops.length >= 2 ? `・路線 ${routeStops.length} 站` : ''}`;
       if (el('region-map-selected-info')) el('region-map-selected-info').innerText = todayCount ? '實心亮點＝今天行程；點景點可查看' : '目前沒有偵測到相符地標，仍可查看區域位置';
       if (el('region-map-jump-btn')) el('region-map-jump-btn').classList.add('hidden');
 
